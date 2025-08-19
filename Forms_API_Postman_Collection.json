@@ -1,0 +1,194 @@
+{
+  "info": {
+    "name": "Forms API Collection",
+    "description": "Complete CRUD operations for Forms management with populated user data (No Authentication Required)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "formId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "507f1f77bcf86cd799439011",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"status\": \"pending\",\n  \"formData\": {\n    \"title\": \"Sample Form\",\n    \"description\": \"This is a sample form\",\n    \"priority\": \"high\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms"]
+        },
+        "description": "Create a new form - REQUIRED: userId, OPTIONAL: status, formData. User data will be automatically populated."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Form (Minimal)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms"]
+        },
+        "description": "Create a form with only required userId (status will default to 'pending', formData will default to {}). User data will be automatically populated."
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Forms",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms"]
+        },
+        "description": "Retrieve all forms from the database with populated user data"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Form by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/forms/{{formId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms", "{{formId}}"]
+        },
+        "description": "Retrieve a specific form by its ID with populated user data"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Forms by User ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/forms/user/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms", "user", "{{userId}}"]
+        },
+        "description": "Retrieve all forms for a specific user with populated user data"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Form",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\",\n  \"formData\": {\n    \"priority\": \"low\",\n    \"notes\": \"Form has been processed\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/forms/{{formId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms", "{{formId}}"]
+        },
+        "description": "Update an existing form (partial update supported). User data will remain populated."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Form",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/forms/{{formId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["forms", "{{formId}}"]
+        },
+        "description": "Delete a form by its ID"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-extract form ID from create response",
+          "if (pm.info.requestName === 'Create Form' || pm.info.requestName === 'Create Form (Minimal)') {",
+          "    const response = pm.response.json();",
+          "    if (response._id) {",
+          "        pm.collectionVariables.set('formId', response._id);",
+          "        console.log('Form ID extracted:', response._id);",
+          "    }",
+          "    ",
+          "    // Test that required fields are present",
+          "    pm.test('Response contains userId', function () {",
+          "        pm.expect(response).to.have.property('userId');",
+          "    });",
+          "    ",
+          "    pm.test('Response contains status', function () {",
+          "        pm.expect(response).to.have.property('status');",
+          "    });",
+          "    ",
+          "    // Test that user data is populated",
+          "    pm.test('User data is populated', function () {",
+          "        pm.expect(response.userId).to.be.an('object');",
+          "        pm.expect(response.userId).to.have.property('_id');",
+          "    });",
+          "}",
+          "",
+          "// Test response status",
+          "pm.test('Status code is 200 or 201', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+          "});",
+          "",
+          "// Test response time",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ]
+} 
