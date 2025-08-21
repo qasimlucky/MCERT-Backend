@@ -69,7 +69,7 @@ export class FormsService {
     return updatedForm;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string; success: boolean }> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid form ID');
     }
@@ -78,5 +78,10 @@ export class FormsService {
     if (!result) {
       throw new NotFoundException('Form not found');
     }
+    
+    return {
+      message: 'Form deleted successfully',
+      success: true
+    };
   }
 } 
