@@ -12,7 +12,8 @@ async function bootstrap() {
   
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:3001', 'https://sirisreports.co.uk', 'https://sirisreports.xyz','http://localhost:3002',"https://mcert-frontend.vercel.app/"],
+    //origin: ['http://localhost:3001', 'https://sirisreports.co.uk', 'https://sirisreports.xyz','http://localhost:3002',"https://mcert-frontend.vercel.app"],
+    origin: "*",
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
