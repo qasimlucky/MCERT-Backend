@@ -1,4 +1,4 @@
-import { Controller, Get, Options, Res, Headers, Req } from '@nestjs/common';
+import { Controller, Get, Options, Res, Headers, Req, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response, Request } from 'express';
 
@@ -32,6 +32,26 @@ export class AppController {
       method: req.method,
       origin: req.headers.origin,
       corsStatus: 'preflight-allowed-everything'
+    });
+  }
+
+  @Post('test-post')
+  testPost(@Body() body: any, @Res() res: Response, @Headers() headers: any) {
+    console.log('📝 POST request received:', { body, headers });
+    
+    // Set CORS headers explicitly for POST request
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Methods', '*');
+    res.header('Access-Control-Expose-Headers', '*');
+    
+    return res.json({
+      message: 'POST request successful with CORS!',
+      timestamp: new Date().toISOString(),
+      receivedData: body,
+      receivedHeaders: headers,
+      corsStatus: 'post-allowed'
     });
   }
 
@@ -146,6 +166,7 @@ export class AppController {
         '/health',
         '/cors-test',
         '/public-cors-test',
+        '/test-post',
         '/api/status'
       ]
     };
