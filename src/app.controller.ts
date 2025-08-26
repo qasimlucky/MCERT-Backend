@@ -16,24 +16,66 @@ export class AppController {
     console.log(`🔄 Global OPTIONS handler called for: ${req.url}`);
     console.log(`📋 OPTIONS headers:`, req.headers);
     
-    // Set CORS headers for preflight - never block
-    const origin = req.headers.origin;
-    if (origin) {
-      res.header('Access-Control-Allow-Origin', origin);
-    }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    // Set CORS headers for preflight - ALLOW EVERYTHING
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', '*');
     res.header('Access-Control-Allow-Headers', '*');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');
+    res.header('Access-Control-Expose-Headers', '*');
     
     // Always return 200 for preflight requests
     return res.status(200).json({ 
-      message: 'CORS preflight handled - never blocked',
+      message: 'CORS preflight handled - COMPLETELY PERMISSIVE',
       timestamp: new Date().toISOString(),
       url: req.url,
       method: req.method,
-      origin: origin,
-      corsStatus: 'preflight-allowed'
+      origin: req.headers.origin,
+      corsStatus: 'preflight-allowed-everything'
+    });
+  }
+
+  @Get('public-cors-test')
+  publicCorsTest(@Res() res: Response, @Headers() headers: any) {
+    // Set CORS headers manually for testing - ALLOW EVERYTHING
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', '*'); // Allow ALL headers
+    res.header('Access-Control-Allow-Methods', '*'); // Allow ALL methods
+    res.header('Access-Control-Expose-Headers', '*'); // Expose ALL headers
+    
+    return res.json({ 
+      message: 'PUBLIC CORS test - COMPLETELY PERMISSIVE configuration!', 
+      timestamp: new Date().toISOString(),
+      corsConfiguration: {
+        origin: 'ALL origins allowed',
+        methods: 'ALL methods allowed',
+        headers: 'ALL headers allowed',
+        exposedHeaders: 'ALL headers exposed',
+        credentials: true,
+        preflightNeverBlocked: true
+      },
+      requestInfo: {
+        method: 'GET',
+        endpoint: '/public-cors-test',
+        corsEnabled: true,
+        allOriginsAllowed: true,
+        allHeadersAllowed: true,
+        allMethodsAllowed: true,
+        preflightNeverBlocked: true,
+        authentication: 'NOT REQUIRED - PUBLIC ENDPOINT'
+      },
+      receivedHeaders: headers,
+      corsSettings: {
+        allowedHeaders: '*',
+        allowedMethods: '*',
+        allowedOrigins: '*',
+        exposedHeaders: '*',
+        credentials: true,
+        maxAge: 86400,
+        preflightContinue: true,
+        optionsSuccessStatus: 200
+      }
     });
   }
 
@@ -49,33 +91,39 @@ export class AppController {
 
   @Get('cors-test')
   corsTest(@Res() res: Response, @Headers() headers: any) {
-    // Set CORS headers manually for testing
-    res.header('Access-Control-Allow-Origin', 'https://mcert-frontend.vercel.app');
+    // Set CORS headers manually for testing - ALLOW EVERYTHING
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', '*'); // Allow all headers
+    res.header('Access-Control-Allow-Headers', '*'); // Allow ALL headers
+    res.header('Access-Control-Allow-Methods', '*'); // Allow ALL methods
+    res.header('Access-Control-Expose-Headers', '*'); // Expose ALL headers
     
     return res.json({ 
-      message: 'CORS is working with all headers allowed!', 
+      message: 'CORS is working with COMPLETELY PERMISSIVE configuration!', 
       timestamp: new Date().toISOString(),
-      allowedOrigins: [
-        'http://localhost:3000',
-        'http://localhost:3001', 
-        'http://localhost:3002',
-        'https://sirisreports.co.uk', 
-        'https://sirisreports.xyz',
-        'https://mcert-frontend.vercel.app'
-      ],
+      corsConfiguration: {
+        origin: 'ALL origins allowed',
+        methods: 'ALL methods allowed',
+        headers: 'ALL headers allowed',
+        exposedHeaders: 'ALL headers exposed',
+        credentials: true,
+        preflightNeverBlocked: true
+      },
       requestInfo: {
         method: 'GET',
         endpoint: '/cors-test',
         corsEnabled: true,
+        allOriginsAllowed: true,
         allHeadersAllowed: true,
+        allMethodsAllowed: true,
         preflightNeverBlocked: true
       },
       receivedHeaders: headers,
-      corsConfiguration: {
+      corsSettings: {
         allowedHeaders: '*',
-        allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedMethods: '*',
+        allowedOrigins: '*',
+        exposedHeaders: '*',
         credentials: true,
         maxAge: 86400,
         preflightContinue: true,
@@ -87,14 +135,17 @@ export class AppController {
   @Get('api/status')
   apiStatus() {
     return {
-      message: 'API is running',
+      message: 'API is running with COMPLETELY PERMISSIVE CORS',
       timestamp: new Date().toISOString(),
-      cors: 'enabled',
+      cors: 'completely-permissive',
+      allOrigins: 'allowed',
       allHeaders: 'allowed',
+      allMethods: 'allowed',
       preflight: 'never-blocked',
       endpoints: [
         '/health',
         '/cors-test',
+        '/public-cors-test',
         '/api/status'
       ]
     };

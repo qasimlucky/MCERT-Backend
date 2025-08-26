@@ -10,29 +10,18 @@ async function bootstrap() {
   // Add cookie-parser middleware
   app.use(cookieParser());
   
-  // CORS configuration - simplified for better debugging
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : [
-        'http://localhost:3000',
-        'http://localhost:3001', 
-        'http://localhost:3002',
-        'https://sirisreports.co.uk', 
-        'https://sirisreports.xyz',
-        'https://mcert-frontend.vercel.app',
-      ];
-
-  console.log('🚀 Starting server with CORS configuration...');
-  console.log('🔒 Allowed CORS origins:', allowedOrigins);
+  // CORS configuration - COMPLETELY PERMISSIVE
+  console.log('🚀 Starting server with COMPLETELY PERMISSIVE CORS configuration...');
+  console.log('🔓 ALL origins, ALL headers, ALL methods allowed');
   
-  // Enable CORS with simple array-based origin and all headers allowed
+  // Enable CORS with WILDCARD for everything
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true, // Allow ALL origins
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: '*', // Allow all headers
-    exposedHeaders: ['Set-Cookie', 'Authorization', 'Access-Control-Allow-Origin'],
-    preflightContinue: true, // Don't block preflight requests
+    methods: '*', // Allow ALL methods
+    allowedHeaders: '*', // Allow ALL headers
+    exposedHeaders: '*', // Expose ALL headers
+    preflightContinue: true, // Preflight requests are NEVER blocked
     optionsSuccessStatus: 200, // Return 200 for OPTIONS requests
     maxAge: 86400 // Cache preflight response for 24 hours
   });
@@ -49,12 +38,13 @@ async function bootstrap() {
       console.log(`🔄 Preflight request detected for: ${req.url}`);
       console.log(`📋 Preflight headers:`, req.headers);
       
-      // Set CORS headers for preflight
-      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      // Set CORS headers for preflight - ALLOW EVERYTHING
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', '*');
       res.header('Access-Control-Allow-Headers', '*');
       res.header('Access-Control-Allow-Credentials', 'true');
       res.header('Access-Control-Max-Age', '86400');
+      res.header('Access-Control-Expose-Headers', '*');
       
       // Send 200 response for preflight
       res.status(200).end();
@@ -67,11 +57,13 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`🔒 CORS enabled with ${allowedOrigins.length} allowed origins`);
+  console.log(`🔓 CORS is COMPLETELY PERMISSIVE - ALL origins, headers, methods allowed`);
   console.log(`📝 To test CORS, visit: http://localhost:${port}/cors-test`);
   console.log(`🌍 Frontend URL: https://mcert-frontend.vercel.app/`);
   console.log(`💡 Make sure your frontend is making requests to: http://localhost:${port}`);
-  console.log(`🔓 All headers are now allowed in CORS configuration`);
   console.log(`✅ Preflight requests will never be blocked`);
+  console.log(`🌐 ALL origins are allowed`);
+  console.log(`📋 ALL headers are allowed`);
+  console.log(`🔄 ALL methods are allowed`);
 }
 bootstrap();
