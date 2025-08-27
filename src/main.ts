@@ -17,9 +17,9 @@ async function bootstrap() {
   app.use(cookieParser());
   console.log('✅ Cookie parser middleware enabled');
   
-  // CORS configuration - COMPLETELY PERMISSIVE
-  console.log('🔓 Configuring CORS - COMPLETELY PERMISSIVE...');
-  console.log('🌐 ALL origins allowed');
+  // CORS configuration - COMPLETELY PERMISSIVE + Ngrok support
+  console.log('🔓 Configuring CORS - COMPLETELY PERMISSIVE + Ngrok support...');
+  console.log('🌐 ALL origins allowed (including ngrok)');
   console.log('📋 ALL headers allowed');
   console.log('🔄 ALL methods allowed');
   console.log('✅ Preflight requests never blocked');
@@ -31,9 +31,8 @@ async function bootstrap() {
     methods: '*', // Allow ALL methods
     allowedHeaders: '*', // Allow ALL headers
     exposedHeaders: '*', // Expose ALL headers
-    preflightContinue: true, // Preflight requests are NEVER blocked
-    optionsSuccessStatus: 200, // Return 200 for OPTIONS requests
-    maxAge: 86400 // Cache preflight response for 24 hours
+    preflightContinue: false, // Let NestJS handle preflight completely
+    optionsSuccessStatus: 200 // Return 200 for OPTIONS requests
   });
   console.log('✅ CORS enabled with completely permissive configuration');
 
@@ -44,27 +43,27 @@ async function bootstrap() {
     console.log(`🔑 User-Agent: ${req.headers['user-agent'] || 'No user-agent'}`);
     console.log(`📋 All Headers:`, req.headers);
     
-    // Handle preflight requests explicitly
+    // Set CORS headers for ALL requests (including ngrok) - EXACTLY THE SAME
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Expose-Headers', '*');
+    res.header('Access-Control-Max-Age', '86400');
+    
+    // Handle preflight requests explicitly with EXACTLY THE SAME headers
     if (req.method === 'OPTIONS') {
       console.log(`🔄 Preflight request detected for: ${req.url}`);
       console.log(`📋 Preflight headers:`, req.headers);
       
-      // Set CORS headers for preflight - ALLOW EVERYTHING
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', '*');
-      res.header('Access-Control-Allow-Headers', '*');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      res.header('Access-Control-Max-Age', '86400');
-      res.header('Access-Control-Expose-Headers', '*');
-      
-      // Send 200 response for preflight
+      // Send 200 response for preflight with EXACTLY THE SAME CORS headers
       res.status(200).end();
       return;
     }
     
     next();
   });
-  console.log('✅ Request logging middleware enabled');
+  console.log('✅ Request logging middleware enabled with CORS headers for all requests');
 
   const port = process.env.PORT || 3000;
   console.log(`🌍 Starting server on port: ${port}`);
@@ -80,14 +79,14 @@ async function bootstrap() {
   console.log(`🌍 Frontend URL: https://mcert-frontend.vercel.app/`);
   console.log(`💡 Make sure your frontend is making requests to: http://localhost:${port}`);
   console.log(`✅ Preflight requests will never be blocked`);
-  console.log(`🌐 ALL origins are allowed`);
+  console.log(`🌐 ALL origins are allowed (including ngrok)`);
   console.log(`📋 ALL headers are allowed`);
   console.log(`🔄 ALL methods are allowed`);
   console.log(`🍪 Cookie parser enabled`);
-  console.log(`🔍 Request logging enabled`);
+  console.log(`🔍 Request logging enabled with CORS headers`);
   console.log(`⏰ Server started at: ${new Date().toISOString()}`);
   console.log('='.repeat(60));
-  console.log('🎯 Ready to handle requests with COMPLETELY PERMISSIVE CORS!');
+  console.log('🎯 Ready to handle requests with COMPLETELY PERMISSIVE CORS + Ngrok support!');
   console.log('='.repeat(60));
 }
 bootstrap();
