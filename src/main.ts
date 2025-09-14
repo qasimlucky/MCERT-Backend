@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
 
 async function bootstrap() {
   console.log('🚀 Starting NestJS application...');
@@ -35,6 +36,11 @@ async function bootstrap() {
     optionsSuccessStatus: 200 // Return 200 for OPTIONS requests
   });
   console.log('✅ CORS enabled with completely permissive configuration');
+
+  // Configure body size limits for Express
+  app.use(express.json({ limit: '200mb' })); // Increase JSON payload limit
+  app.use(express.urlencoded({ limit: '200mb', extended: true })); // Increase URL-encoded payload limit
+  console.log('✅ Body size limits configured: 50MB for JSON and URL-encoded data');
 
   // Add request logging middleware to see all incoming requests
   app.use((req: any, res: any, next: any) => {
