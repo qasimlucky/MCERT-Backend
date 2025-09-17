@@ -40,7 +40,7 @@ async function bootstrap() {
   // Configure body size limits for Express
   app.use(express.json({ limit: '200mb' })); // Increase JSON payload limit
   app.use(express.urlencoded({ limit: '200mb', extended: true })); // Increase URL-encoded payload limit
-  console.log('✅ Body size limits configured: 50MB for JSON and URL-encoded data');
+  console.log('✅ Body size limits configured: 200MB for JSON and URL-encoded data');
 
   // Add request logging middleware to see all incoming requests
   app.use((req: any, res: any, next: any) => {
