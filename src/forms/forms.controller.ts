@@ -47,4 +47,35 @@ export class FormsController {
   remove(@Param('id') id: string) {
     return this.formsService.remove(id);
   }
+
+  // Diagnostic endpoints
+  @Get('diagnostics/gridfs')
+  diagnoseGridFS() {
+    return this.formsService.diagnoseGridFSIssues();
+  }
+
+  @Get('diagnostics/connectivity')
+  verifyConnectivity() {
+    return this.formsService.verifyGridFSConnectivity();
+  }
+
+  @Get('diagnostics/check-file/:fileId')
+  checkGridFSFile(@Param('fileId') fileId: string) {
+    return this.formsService.checkGridFSFile(fileId);
+  }
+
+  @Post('diagnostics/recover')
+  recoverOrphanedData() {
+    return this.formsService.recoverOrphanedGridFSData();
+  }
+
+  @Post('diagnostics/emergency-recover/:fileId')
+  emergencyRecoverFile(@Param('fileId') fileId: string) {
+    return this.formsService.emergencyRecoverFile(fileId);
+  }
+
+  @Post('diagnostics/force-optimized/:fileId')
+  forceOptimizedRetrieval(@Param('fileId') fileId: string) {
+    return this.formsService.forceOptimizedRetrieval(fileId);
+  }
 } 
