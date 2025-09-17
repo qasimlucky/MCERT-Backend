@@ -9,10 +9,23 @@ export class Form extends Document {
   @Prop({ default: 'pending', required: true })
   status: string;
 
-  @Prop({ type: Object, default: {} })
-  formData: {
+  // For small form data (< 15MB) - stored directly
+  @Prop({ type: Object, default: null })
+  formData?: {
     [key: string]: any; // Allow additional fields in formData
   };
+
+  // For large form data (>= 15MB) - stored in GridFS
+  @Prop({ type: String, default: null })
+  gridFSFileId?: string;
+
+  // Indicates whether data is stored in GridFS or directly
+  @Prop({ default: false })
+  isLargeData: boolean;
+
+  // Size of the form data in bytes
+  @Prop({ default: 0 })
+  dataSize: number;
 
   @Prop({ default: Date.now })
   createdAt: Date;
