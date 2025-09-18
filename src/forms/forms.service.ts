@@ -6,6 +6,7 @@ import { Readable } from 'stream';
 import { Form } from './entities/form.entity';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { PaginationDto, PaginatedResponse } from './dto/pagination.dto';
 
 @Injectable()
 export class FormsService {
@@ -94,6 +95,100 @@ export class FormsService {
     return processedForms;
   }
 
+  async findAllPaginated(paginationDto: PaginationDto): Promise<PaginatedResponse<any>> {
+    const { page, limit, sortBy, sortOrder, search, status, includeFormData } = paginationDto;
+    
+    // Build query filters
+    const query: any = {};
+    
+    if (status) {
+      query.status = status;
+    }
+    
+    if (search) {
+      // Search in populated user fields and form status
+      query.$or = [
+        { status: { $regex: search, $options: 'i' } },
+        // We'll need to handle user search differently due to population
+      ];
+    }
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Calculate skip value
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const total = await this.formModel.countDocuments(query);
+
+    // Execute paginated query
+    let formsQuery = this.formModel
+      .find(query)
+      .populate('userId')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    const forms = await formsQuery.exec();
+
+    // Process forms based on includeFormData flag
+    const processedForms = [];
+    for (const form of forms) {
+      if (includeFormData && form.isLargeData && form.gridFSFileId) {
+        try {
+          const formData = await this.retrieveFromGridFS(form.gridFSFileId);
+          processedForms.push({ ...form.toObject(), formData });
+        } catch (error) {
+          processedForms.push({
+            ...form.toObject(),
+            formData: null,
+            _gridfsError: 'Failed to retrieve form data from storage',
+          });
+        }
+      } else if (includeFormData) {
+        // Include form data if it's stored directly
+        processedForms.push(form.toObject());
+      } else {
+        // For performance, don't retrieve GridFS data by default
+        if (form.isLargeData) {
+          processedForms.push({
+            ...form.toObject(),
+            formData: null,
+            _hasLargeData: true,
+            _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
+          });
+        } else {
+          processedForms.push(form.toObject());
+        }
+      }
+    }
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      data: processedForms,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext,
+        hasPrev,
+      },
+      filters: {
+        search,
+        status,
+        sortBy,
+        sortOrder,
+      },
+    };
+  }
+
   async findOne(id: string): Promise<any> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid form ID');
@@ -147,6 +242,100 @@ export class FormsService {
       }
       return form;
     });
+  }
+
+  async findByUserIdPaginated(userId: string, paginationDto: PaginationDto): Promise<PaginatedResponse<any>> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new NotFoundException('Invalid user ID');
+    }
+
+    const { page, limit, sortBy, sortOrder, search, status, includeFormData } = paginationDto;
+    
+    // Build query filters
+    const query: any = { userId: new Types.ObjectId(userId) };
+    
+    if (status) {
+      query.status = status;
+    }
+    
+    if (search) {
+      query.$or = [
+        { status: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Calculate skip value
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const total = await this.formModel.countDocuments(query);
+
+    // Execute paginated query
+    const forms = await this.formModel
+      .find(query)
+      .populate('userId')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Process forms based on includeFormData flag
+    const processedForms = [];
+    for (const form of forms) {
+      if (includeFormData && form.isLargeData && form.gridFSFileId) {
+        try {
+          const formData = await this.retrieveFromGridFS(form.gridFSFileId);
+          processedForms.push({ ...form.toObject(), formData });
+        } catch (error) {
+          processedForms.push({
+            ...form.toObject(),
+            formData: null,
+            _gridfsError: 'Failed to retrieve form data from storage',
+          });
+        }
+      } else if (includeFormData) {
+        processedForms.push(form.toObject());
+      } else {
+        // For performance, don't retrieve GridFS data by default
+        if (form.isLargeData) {
+          processedForms.push({
+            ...form.toObject(),
+            formData: null,
+            _hasLargeData: true,
+            _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
+          });
+        } else {
+          processedForms.push(form.toObject());
+        }
+      }
+    }
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      data: processedForms,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext,
+        hasPrev,
+      },
+      filters: {
+        search,
+        status,
+        sortBy,
+        sortOrder,
+      },
+    };
   }
 
   async update(id: string, updateFormDto: UpdateFormDto): Promise<Form> {

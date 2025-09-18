@@ -11,6 +11,7 @@ import {
 import { FormsService } from './forms.service';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { PaginationDto } from './dto/pagination.dto';
 import { Public } from '../iam/decorators/auth.decorator';
 
 @Public()
@@ -24,13 +25,33 @@ export class FormsController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query() paginationDto?: PaginationDto) {
+    // If any pagination parameters are provided, use paginated version
+    if (paginationDto && (paginationDto.page || paginationDto.limit || paginationDto.sortBy || paginationDto.search || paginationDto.status)) {
+      return this.formsService.findAllPaginated(paginationDto);
+    }
+    // Otherwise, return all forms (backwards compatibility)
     return this.formsService.findAll();
   }
 
+  @Get('paginated')
+  findAllPaginated(@Query() paginationDto: PaginationDto) {
+    return this.formsService.findAllPaginated(paginationDto);
+  }
+
   @Get('user/:userId')
-  findByUserId(@Param('userId') userId: string) {
+  findByUserId(@Param('userId') userId: string, @Query() paginationDto?: PaginationDto) {
+    // If any pagination parameters are provided, use paginated version
+    if (paginationDto && (paginationDto.page || paginationDto.limit || paginationDto.sortBy || paginationDto.search || paginationDto.status)) {
+      return this.formsService.findByUserIdPaginated(userId, paginationDto);
+    }
+    // Otherwise, return all forms for the user (backwards compatibility)
     return this.formsService.findByUserId(userId);
+  }
+
+  @Get('user/:userId/paginated')
+  findByUserIdPaginated(@Param('userId') userId: string, @Query() paginationDto: PaginationDto) {
+    return this.formsService.findByUserIdPaginated(userId, paginationDto);
   }
 
   @Get(':id')
