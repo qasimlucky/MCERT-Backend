@@ -11,19 +11,25 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bodyParser: false, // Disable default body parser to configure our own
   });
-  console.log('✅ NestJS application created successfully with custom body parser configuration');
+  console.log(
+    '✅ NestJS application created successfully with custom body parser configuration',
+  );
 
   // Configure body size limits FIRST - CRITICAL for large payloads
   console.log('📦 Configuring body parser limits for large payloads...');
-  app.use(express.json({ 
-    limit: '500mb',
-    strict: false // Allow non-strict JSON parsing for large payloads
-  })); // Increase JSON payload limit to 500MB
-  app.use(express.urlencoded({ 
-    limit: '500mb', 
-    extended: true,
-    parameterLimit: 50000 // Increase parameter limit
-  })); // Increase URL-encoded payload limit to 500MB
+  app.use(
+    express.json({
+      limit: '500mb',
+      strict: false, // Allow non-strict JSON parsing for large payloads
+    }),
+  ); // Increase JSON payload limit to 500MB
+  app.use(
+    express.urlencoded({
+      limit: '500mb',
+      extended: true,
+      parameterLimit: 50000, // Increase parameter limit
+    }),
+  ); // Increase URL-encoded payload limit to 500MB
   app.use(express.raw({ limit: '500mb' })); // Add raw body parser for binary data
   app.use(express.text({ limit: '500mb' })); // Add text body parser
   console.log(
@@ -36,7 +42,9 @@ async function bootstrap() {
     res.setTimeout(300000); // 5 minutes timeout for responses
     next();
   });
-  console.log('⏰ Server timeouts configured: 5 minutes for large file operations');
+  console.log(
+    '⏰ Server timeouts configured: 5 minutes for large file operations',
+  );
 
   app.useGlobalPipes(new ValidationPipe());
   console.log('✅ Global validation pipe enabled');
@@ -100,7 +108,7 @@ async function bootstrap() {
     '✅ Request logging middleware enabled with CORS headers for all requests',
   );
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 5000;
   console.log(`🌍 Starting server on port: ${port}`);
 
   await app.listen(port);

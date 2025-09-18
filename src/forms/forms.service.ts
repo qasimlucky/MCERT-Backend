@@ -95,16 +95,19 @@ export class FormsService {
     return processedForms;
   }
 
-  async findAllPaginated(paginationDto: PaginationDto): Promise<PaginatedResponse<any>> {
-    const { page, limit, sortBy, sortOrder, search, status, includeFormData } = paginationDto;
-    
+  async findAllPaginated(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<any>> {
+    const startTime = Date.now();
+    const { page, limit, sortBy, sortOrder, search, status } = paginationDto;
+    const includeFormData = true;
     // Build query filters
     const query: any = {};
-    
+
     if (status) {
       query.status = status;
     }
-    
+
     if (search) {
       // Search in populated user fields and form status
       query.$or = [
@@ -124,7 +127,7 @@ export class FormsService {
     const total = await this.formModel.countDocuments(query);
 
     // Execute paginated query
-    let formsQuery = this.formModel
+    const formsQuery = this.formModel
       .find(query)
       .populate('userId')
       .sort(sort)
@@ -132,45 +135,72 @@ export class FormsService {
       .limit(limit);
 
     const forms = await formsQuery.exec();
+    console.log(
+      `Retrieved ${forms.length} forms for pagination. includeFormData: ${includeFormData}`,
+    );
 
-    // Process forms based on includeFormData flag
-    const processedForms = [];
-    for (const form of forms) {
-      if (includeFormData && form.isLargeData && form.gridFSFileId) {
-        try {
-          const formData = await this.retrieveFromGridFS(form.gridFSFileId);
-          processedForms.push({ ...form.toObject(), formData });
-        } catch (error) {
-          processedForms.push({
-            ...form.toObject(),
-            formData: null,
-            _gridfsError: 'Failed to retrieve form data from storage',
-          });
-        }
-      } else if (includeFormData) {
-        // Include form data if it's stored directly
-        processedForms.push(form.toObject());
-      } else {
-        // For performance, don't retrieve GridFS data by default
-        if (form.isLargeData) {
-          processedForms.push({
-            ...form.toObject(),
-            formData: null,
-            _hasLargeData: true,
-            _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
-          });
+    // Process forms based on includeFormData flag - using parallel processing for GridFS retrieval
+    console.log(`Starting parallel processing of ${forms.length} forms`);
+
+    const processedForms = await Promise.all(
+      forms.map(async (form) => {
+        console.log(
+          `Processing form ${form._id} - isLargeData: ${form.isLargeData}, hasGridFSFileId: ${!!form.gridFSFileId}, dataSize: ${form.dataSize}`,
+        );
+
+        if (includeFormData && form.isLargeData && form.gridFSFileId) {
+          console.log(
+            `Processing large form data - gridFSFileId: ${form.gridFSFileId}, dataSize: ${form.dataSize}`,
+          );
+          try {
+            const formData = await this.retrieveFromGridFS(form.gridFSFileId);
+            console.log(
+              `Successfully retrieved GridFS data for form ${form._id}`,
+            );
+            return { ...form.toObject(), formData };
+          } catch (error) {
+            console.error(
+              `Failed to retrieve GridFS data for form ${form._id}:`,
+              error,
+            );
+            return {
+              ...form.toObject(),
+              formData: null,
+              _gridfsError: 'Failed to retrieve form data from storage',
+            };
+          }
+        } else if (includeFormData) {
+          // Include form data if it's stored directly (non-large data)
+          console.log(
+            `Processing small form data - isLargeData: ${form.isLargeData}, hasFormData: ${!!form.formData}, gridFSFileId: ${form.gridFSFileId}`,
+          );
+          return form.toObject();
         } else {
-          processedForms.push(form.toObject());
+          // For performance, don't retrieve GridFS data by default
+          if (form.isLargeData) {
+            return {
+              ...form.toObject(),
+              formData: null,
+              _hasLargeData: true,
+              _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
+            };
+          } else {
+            return form.toObject();
+          }
         }
-      }
-    }
+      }),
+    );
+
+    console.log(
+      `Completed parallel processing of ${processedForms.length} forms`,
+    );
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
 
-    return {
+    const response = {
       data: processedForms,
       pagination: {
         page,
@@ -187,6 +217,34 @@ export class FormsService {
         sortOrder,
       },
     };
+
+    // Log response size for debugging
+    const responseSize = JSON.stringify(response).length;
+    console.log(
+      `Response size: ${(responseSize / 1024 / 1024).toFixed(2)}MB (${responseSize} bytes)`,
+    );
+    console.log(
+      `Returning pagination response with ${processedForms.length} forms`,
+    );
+
+    // Check for potential issues
+    if (responseSize > 50 * 1024 * 1024) {
+      // 50MB
+      console.warn(
+        '⚠️  Response size is very large (>50MB), this might cause issues',
+      );
+    }
+
+    // Validate response structure
+    if (!response.data || !Array.isArray(response.data)) {
+      console.error('❌ Invalid response structure - data is not an array');
+    }
+
+    // Log total processing time
+    const totalTime = Date.now() - startTime;
+    console.log(`⏱️  Total processing time: ${totalTime}ms`);
+
+    return response;
   }
 
   async findOne(id: string): Promise<any> {
@@ -244,24 +302,26 @@ export class FormsService {
     });
   }
 
-  async findByUserIdPaginated(userId: string, paginationDto: PaginationDto): Promise<PaginatedResponse<any>> {
+  async findByUserIdPaginated(
+    userId: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<any>> {
     if (!Types.ObjectId.isValid(userId)) {
       throw new NotFoundException('Invalid user ID');
     }
 
-    const { page, limit, sortBy, sortOrder, search, status, includeFormData } = paginationDto;
-    
+    const { page, limit, sortBy, sortOrder, search, status, includeFormData } =
+      paginationDto;
+
     // Build query filters
     const query: any = { userId: new Types.ObjectId(userId) };
-    
+
     if (status) {
       query.status = status;
     }
-    
+
     if (search) {
-      query.$or = [
-        { status: { $regex: search, $options: 'i' } },
-      ];
+      query.$or = [{ status: { $regex: search, $options: 'i' } }];
     }
 
     // Build sort object
@@ -283,43 +343,54 @@ export class FormsService {
       .limit(limit)
       .exec();
 
-    // Process forms based on includeFormData flag
-    const processedForms = [];
-    for (const form of forms) {
-      if (includeFormData && form.isLargeData && form.gridFSFileId) {
-        try {
-          const formData = await this.retrieveFromGridFS(form.gridFSFileId);
-          processedForms.push({ ...form.toObject(), formData });
-        } catch (error) {
-          processedForms.push({
-            ...form.toObject(),
-            formData: null,
-            _gridfsError: 'Failed to retrieve form data from storage',
-          });
-        }
-      } else if (includeFormData) {
-        processedForms.push(form.toObject());
-      } else {
-        // For performance, don't retrieve GridFS data by default
-        if (form.isLargeData) {
-          processedForms.push({
-            ...form.toObject(),
-            formData: null,
-            _hasLargeData: true,
-            _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
-          });
+    // Process forms based on includeFormData flag - using parallel processing for GridFS retrieval
+    console.log(`Starting parallel processing of ${forms.length} user forms`);
+
+    const processedForms = await Promise.all(
+      forms.map(async (form) => {
+        if (includeFormData && form.isLargeData && form.gridFSFileId) {
+          try {
+            const formData = await this.retrieveFromGridFS(form.gridFSFileId);
+            return { ...form.toObject(), formData };
+          } catch (error) {
+            console.error(
+              `Failed to retrieve GridFS data for form ${form._id}:`,
+              error,
+            );
+            return {
+              ...form.toObject(),
+              formData: null,
+              _gridfsError: 'Failed to retrieve form data from storage',
+            };
+          }
+        } else if (includeFormData) {
+          return form.toObject();
         } else {
-          processedForms.push(form.toObject());
+          // For performance, don't retrieve GridFS data by default
+          if (form.isLargeData) {
+            return {
+              ...form.toObject(),
+              formData: null,
+              _hasLargeData: true,
+              _dataSize: `${(form.dataSize / 1024 / 1024).toFixed(2)}MB`,
+            };
+          } else {
+            return form.toObject();
+          }
         }
-      }
-    }
+      }),
+    );
+
+    console.log(
+      `Completed parallel processing of ${processedForms.length} user forms`,
+    );
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
 
-    return {
+    const response = {
       data: processedForms,
       pagination: {
         page,
@@ -336,6 +407,17 @@ export class FormsService {
         sortOrder,
       },
     };
+
+    // Log response size for debugging
+    const responseSize = JSON.stringify(response).length;
+    console.log(
+      `User forms response size: ${(responseSize / 1024 / 1024).toFixed(2)}MB (${responseSize} bytes)`,
+    );
+    console.log(
+      `Returning user pagination response with ${processedForms.length} forms`,
+    );
+
+    return response;
   }
 
   async update(id: string, updateFormDto: UpdateFormDto): Promise<Form> {

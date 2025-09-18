@@ -34,4 +34,4 @@ export class Form extends Document {
   updatedAt: Date;
 }
 
-export const FormSchema = SchemaFactory.createForClass(Form); 
+export const FormSchema = SchemaFactory.createForClass(Form);
