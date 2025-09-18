@@ -108,7 +108,7 @@ async function bootstrap() {
     '✅ Request logging middleware enabled with CORS headers for all requests',
   );
 
-  const port = process.env.PORT || 5000;
+  const port = process.env.PORT || 3000;
   console.log(`🌍 Starting server on port: ${port}`);
 
   await app.listen(port);
