@@ -92,7 +92,7 @@ export class AuthService {
       // Generate tokens
       const accessToken = await this.jwtService.signAsync(
         { sub: user.id, name: user.name, email: user.email, role: user.role },
-        { secret: this.configService.get('JWT_SECRET'), expiresIn: '1h' }
+        { secret: this.configService.get('JWT_SECRET'), expiresIn: '7d' }
       );
       const refreshToken = await this.jwtService.signAsync(
         { sub: user.id },
@@ -104,6 +104,7 @@ export class AuthService {
         secure: true,
         sameSite: 'none',
         path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       response.cookie('refresh_token', refreshToken, {
         httpOnly: true,
@@ -118,7 +119,7 @@ export class AuthService {
         access_token: accessToken,
         refresh_token: refreshToken,
         token_type: 'Bearer',
-        expires_in: 3600 // 1 hour in seconds
+        expires_in: 604800 // 7 days in seconds (7 * 24 * 60 * 60)
       };
     } catch (err) {
       throw new UnauthorizedException('Invalid credentials');
@@ -200,7 +201,7 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
       token_type: 'Bearer',
-      expires_in: 3600 // 1 hour in seconds
+      expires_in: 604800 // 7 days in seconds (7 * 24 * 60 * 60)
     };
   }
   
