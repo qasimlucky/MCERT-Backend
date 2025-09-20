@@ -113,7 +113,13 @@ export class AuthService {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      return { user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+      return { 
+        user: { id: user.id, name: user.name, email: user.email, role: user.role },
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        token_type: 'Bearer',
+        expires_in: 3600 // 1 hour in seconds
+      };
     } catch (err) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -191,8 +197,10 @@ export class AuthService {
     await this.refreshTokenIdsStorage.insert(user.id, refreshTokenId);
   
     return {
-      accessToken,
-      refreshToken,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      token_type: 'Bearer',
+      expires_in: 3600 // 1 hour in seconds
     };
   }
   
