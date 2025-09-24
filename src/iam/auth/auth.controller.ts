@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Res, Get, UseGuards, Headers } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Res,
+  Get,
+  UseGuards,
+  Headers,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
@@ -30,14 +38,14 @@ export class AuthController {
     @Headers() headers: any,
   ) {
     console.log('🔐 Sign-in attempt:', { email: signInDto.email, headers });
-    
+
     // Set CORS headers explicitly for this endpoint
     response.header('Access-Control-Allow-Origin', '*');
     response.header('Access-Control-Allow-Credentials', 'true');
     response.header('Access-Control-Allow-Headers', '*');
     response.header('Access-Control-Allow-Methods', '*');
     response.header('Access-Control-Expose-Headers', '*');
-    
+
     try {
       const result = await this.authService.signIn(signInDto, response);
       console.log('✅ Sign-in successful for:', signInDto.email);
@@ -50,8 +58,11 @@ export class AuthController {
 
   @Post('change-password')
   @UseGuards(AuthGuard)
-  async changePassword(@ActiveUser('sub') userId: string, @Body() changePasswordDto: ChangePasswordDto) {
-    console.log("changePasswordDto ================", userId);
+  async changePassword(
+    @ActiveUser('sub') userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    console.log('changePasswordDto ================', userId);
     console.log(changePasswordDto);
     return this.authService.changePassword(userId, changePasswordDto);
   }

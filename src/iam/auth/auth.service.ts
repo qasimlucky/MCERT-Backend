@@ -66,7 +66,9 @@ export class AuthService {
         throw new NotFoundException('Password does not match');
       }
 
-      user.password = await this.hashingService.hash(changePasswordDto.newPassword);
+      user.password = await this.hashingService.hash(
+        changePasswordDto.newPassword,
+      );
       await user.save();
       return { message: 'Password changed successfully' };
     } catch (error) {
@@ -92,11 +94,14 @@ export class AuthService {
       // Generate tokens
       const accessToken = await this.jwtService.signAsync(
         { sub: user.id, name: user.name, email: user.email, role: user.role },
-        { secret: this.configService.get('JWT_SECRET'), expiresIn: '7d' }
+        { secret: this.configService.get('JWT_SECRET'), expiresIn: '7d' },
       );
       const refreshToken = await this.jwtService.signAsync(
         { sub: user.id },
-        { secret: this.configService.get('JWT_REFRESH_SECRET'), expiresIn: '7d' }
+        {
+          secret: this.configService.get('JWT_REFRESH_SECRET'),
+          expiresIn: '7d',
+        },
       );
       // Set cookies
       response.cookie('access_token', accessToken, {
@@ -114,12 +119,17 @@ export class AuthService {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      return { 
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
         access_token: accessToken,
         refresh_token: refreshToken,
         token_type: 'Bearer',
-        expires_in: 604800 // 7 days in seconds (7 * 24 * 60 * 60)
+        expires_in: 604800, // 7 days in seconds (7 * 24 * 60 * 60)
       };
     } catch (err) {
       throw new UnauthorizedException('Invalid credentials');
@@ -183,28 +193,25 @@ export class AuthService {
   async generateTokens(user: User) {
     const refreshTokenId = randomUUID();
     const [accessToken, refreshToken] = await Promise.all([
-      this.signToken(
-        user.id,
-        this.jwtConfiguration.accessTokenTtl,
-        { email: user.email, role: user.role },
-      ),
-      this.signToken(
-        user.id,
-        this.jwtConfiguration.refreshTokenTtl,
-        { refreshTokenId },
-      ),
+      this.signToken(user.id, this.jwtConfiguration.accessTokenTtl, {
+        email: user.email,
+        role: user.role,
+      }),
+      this.signToken(user.id, this.jwtConfiguration.refreshTokenTtl, {
+        refreshTokenId,
+      }),
     ]);
-      
+
     await this.refreshTokenIdsStorage.insert(user.id, refreshTokenId);
-  
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
       token_type: 'Bearer',
-      expires_in: 604800 // 7 days in seconds (7 * 24 * 60 * 60)
+      expires_in: 604800, // 7 days in seconds (7 * 24 * 60 * 60)
     };
   }
-  
+
   async signToken<T extends object>(
     userId: string,
     expiresIn: number | string,
