@@ -7,12 +7,20 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { FormsService } from './forms.service';
-import { CreateFormDto } from './dto/create-form.dto';
-import { UpdateFormDto } from './dto/update-form.dto';
-import { PaginationDto } from './dto/pagination.dto';
+import { 
+  CreateFormDto, 
+  UpdateFormDto, 
+  FormSubmissionDto,
+  FormQueryDto,
+  BulkUpdateFormDto,
+  BulkDeleteFormDto,
+  PaginationDto
+} from './dto/mcerts-forms.dto';
 import { Public } from '../iam/decorators/auth.decorator';
+import { AuthGuard } from '../iam/guards/auth/auth.guard';
 
 @Public()
 @Controller('forms')
@@ -20,32 +28,39 @@ export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   create(@Body() createFormDto: CreateFormDto) {
     return this.formsService.create(createFormDto);
   }
 
+  @Post('submit')
+  @UseGuards(AuthGuard)
+  submitForm(@Body() formSubmissionDto: FormSubmissionDto) {
+    return this.formsService.submitForm(formSubmissionDto);
+  }
+
   @Get()
-  async findAll(@Query() query: any) {
+  async findAll(@Query() query: FormQueryDto) {
     // If any pagination parameters are provided, use paginated version
     if (
       query &&
       (query.page ||
         query.limit ||
-        query.sortBy ||
-        query.search ||
-        query.status)
+        query.status ||
+        query.inspector ||
+        query.siteName)
     ) {
       console.log('Using paginated findAll with params:', query);
       const paginationDto = new PaginationDto();
 
       // Map query parameters to DTO with proper type conversion
-      paginationDto.page = query.page ? parseInt(query.page) : 1;
-      paginationDto.limit = query.limit ? parseInt(query.limit) : 10;
-      paginationDto.sortBy = query.sortBy || 'createdAt';
+      paginationDto.page = query.page || 1;
+      paginationDto.limit = query.limit || 10;
+      paginationDto.sortBy = 'createdAt';
       paginationDto.sortOrder = query.sortOrder || 'desc';
-      paginationDto.search = query.search;
+      paginationDto.search = query.inspector || query.siteName;
       paginationDto.status = query.status;
-      paginationDto.includeFormData = query.includeFormData === 'true';
+      paginationDto.includeFormData = true;
 
       console.log(
         'Controller: Calling findAllPaginated with includeFormData:',
@@ -113,17 +128,39 @@ export class FormsController {
     return this.formsService.findByUserIdPaginated(userId, paginationDto);
   }
 
+  // New query endpoint (must be before :id route)
+  @Get('query')
+  @UseGuards(AuthGuard)
+  getFormsByQuery(@Query() queryDto: FormQueryDto) {
+    return this.formsService.getFormsByQuery(queryDto);
+  }
+
+  // New bulk operation endpoints
+  @Patch('bulk/update')
+  @UseGuards(AuthGuard)
+  bulkUpdate(@Body() bulkUpdateDto: BulkUpdateFormDto) {
+    return this.formsService.bulkUpdateForms(bulkUpdateDto);
+  }
+
+  @Delete('bulk/delete')
+  @UseGuards(AuthGuard)
+  bulkDelete(@Body() bulkDeleteDto: BulkDeleteFormDto) {
+    return this.formsService.bulkDeleteForms(bulkDeleteDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.formsService.findOne(id);
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   update(@Param('id') id: string, @Body() updateFormDto: UpdateFormDto) {
     return this.formsService.update(id, updateFormDto);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.formsService.remove(id);
   }

@@ -4,9 +4,19 @@ import { Model, Types, Connection } from 'mongoose';
 import { GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
 import { Form } from './entities/form.entity';
-import { CreateFormDto } from './dto/create-form.dto';
-import { UpdateFormDto } from './dto/update-form.dto';
-import { PaginationDto, PaginatedResponse } from './dto/pagination.dto';
+import { 
+  CreateFormDto, 
+  UpdateFormDto, 
+  FormSubmissionDto,
+  FormResponseDto,
+  PaginationDto,
+  PaginatedFormsDto,
+  FormQueryDto,
+  ApiResponseDto,
+  FormCreationResponseDto,
+  BulkUpdateFormDto,
+  BulkDeleteFormDto
+} from './dto/mcerts-forms.dto';
 
 @Injectable()
 export class FormsService {
@@ -24,50 +34,65 @@ export class FormsService {
     });
   }
 
-  async create(createFormDto: CreateFormDto): Promise<Form> {
-    console.log('Creating form with data:', createFormDto);
+  async create(createFormDto: CreateFormDto): Promise<FormCreationResponseDto> {
+    try {
+      console.log('Creating MCERTS form with data:', createFormDto);
 
-    // Ensure userId is provided
-    if (!createFormDto.userId) {
-      throw new Error('userId is required');
-    }
+      // Ensure userId is provided
+      if (!createFormDto.userId) {
+        throw new Error('userId is required');
+      }
 
-    // Calculate payload size
-    const payloadSize = JSON.stringify(createFormDto.formData || {}).length;
-    console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`);
+      // Calculate payload size
+      const payloadSize = JSON.stringify(createFormDto.formData || {}).length;
+      console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`);
 
-    let formDocument: any = {
-      userId: createFormDto.userId,
-      status: createFormDto.status || 'pending',
-      dataSize: payloadSize,
-      isLargeData: false,
-    };
-
-    // Decide storage method based on size
-    if (payloadSize > this.MAX_DIRECT_STORAGE_SIZE) {
-      console.log('Using GridFS for large form data');
-
-      // Store in GridFS
-      const gridFSFileId = await this.storeInGridFS(createFormDto.formData, {
+      let formDocument: any = {
         userId: createFormDto.userId,
-        formType: 'form-submission',
-      });
+        status: createFormDto.status || 'pending',
+        dataSize: payloadSize,
+        isLargeData: false,
+      };
 
-      formDocument.gridFSFileId = gridFSFileId.toString();
-      formDocument.isLargeData = true;
-    } else {
-      console.log('Using direct storage for form data');
+      // Decide storage method based on size
+      if (payloadSize > this.MAX_DIRECT_STORAGE_SIZE) {
+        console.log('Using GridFS for large form data');
 
-      // Store directly in MongoDB document
-      formDocument.formData = createFormDto.formData;
+        // Store in GridFS
+        const gridFSFileId = await this.storeInGridFS(createFormDto.formData, {
+          userId: createFormDto.userId,
+          formType: 'mcerts-form-submission',
+        });
+
+        formDocument.gridFSFileId = gridFSFileId.toString();
+        formDocument.isLargeData = true;
+      } else {
+        console.log('Using direct storage for form data');
+
+        // Store directly in MongoDB document
+        formDocument.formData = createFormDto.formData;
+      }
+
+      const createdForm = new this.formModel(formDocument);
+      const savedForm = await createdForm.save();
+      console.log('MCERTS form saved successfully:', savedForm._id);
+
+      // Return populated form
+      const populatedForm = await this.formModel.findById(savedForm._id).populate('userId').exec();
+
+      return {
+        success: true,
+        data: populatedForm as any,
+        message: 'MCERTS form created successfully'
+      };
+    } catch (error) {
+      console.error('Error creating MCERTS form:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to create MCERTS form'
+      };
     }
-
-    const createdForm = new this.formModel(formDocument);
-    const savedForm = await createdForm.save();
-    console.log('Form saved successfully:', savedForm._id);
-
-    // Return populated form
-    return this.formModel.findById(savedForm._id).populate('userId').exec();
   }
 
   async findAll(): Promise<any[]> {
@@ -97,7 +122,7 @@ export class FormsService {
 
   async findAllPaginated(
     paginationDto: PaginationDto,
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedFormsDto> {
     const startTime = Date.now();
     const { page, limit, sortBy, sortOrder, search, status } = paginationDto;
     const includeFormData = true;
@@ -305,7 +330,7 @@ export class FormsService {
   async findByUserIdPaginated(
     userId: string,
     paginationDto: PaginationDto,
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedFormsDto> {
     if (!Types.ObjectId.isValid(userId)) {
       throw new NotFoundException('Invalid user ID');
     }
@@ -496,8 +521,127 @@ export class FormsService {
     await this.formModel.findByIdAndDelete(id);
 
     return {
-      message: 'Form deleted successfully',
+      message: 'MCERTS form deleted successfully',
       success: true,
+    };
+  }
+
+  // New method for form submission
+  async submitForm(formSubmissionDto: FormSubmissionDto): Promise<FormCreationResponseDto> {
+    try {
+      const createFormDto: CreateFormDto = {
+        userId: new Types.ObjectId(formSubmissionDto.userId),
+        status: formSubmissionDto.status || 'submitted',
+        formData: formSubmissionDto.formData
+      };
+
+      return await this.create(createFormDto);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to submit form'
+      };
+    }
+  }
+
+  // Bulk update forms
+  async bulkUpdateForms(bulkUpdateDto: BulkUpdateFormDto): Promise<ApiResponseDto> {
+    try {
+      const { formIds, status, formData } = bulkUpdateDto;
+
+      const updateData: any = {};
+      if (status) updateData.status = status;
+      if (formData) updateData.formData = formData;
+
+      const result = await this.formModel.updateMany(
+        { _id: { $in: formIds } },
+        updateData
+      );
+
+      return {
+        success: true,
+        data: { modifiedCount: result.modifiedCount },
+        message: `Successfully updated ${result.modifiedCount} forms`
+      };
+    } catch (error) {
+      console.error('Error in bulk update:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to bulk update forms'
+      };
+    }
+  }
+
+  // Bulk delete forms
+  async bulkDeleteForms(bulkDeleteDto: BulkDeleteFormDto): Promise<ApiResponseDto> {
+    try {
+      const { formIds } = bulkDeleteDto;
+
+      // Get forms to clean up GridFS data
+      const forms = await this.formModel.find({ _id: { $in: formIds } });
+      
+      // Clean up GridFS data for large forms
+      for (const form of forms) {
+        if (form.isLargeData && form.gridFSFileId) {
+          await this.deleteFromGridFS(form.gridFSFileId);
+        }
+      }
+
+      const result = await this.formModel.deleteMany({ _id: { $in: formIds } });
+
+      return {
+        success: true,
+        data: { deletedCount: result.deletedCount },
+        message: `Successfully deleted ${result.deletedCount} forms`
+      };
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to bulk delete forms'
+      };
+    }
+  }
+
+  // Get forms by query parameters
+  async getFormsByQuery(queryDto: FormQueryDto): Promise<PaginatedFormsDto> {
+    const { page = 1, limit = 5, sortOrder = 'desc', status, inspector, siteName, userId } = queryDto;
+
+    // Build query
+    const query: any = {};
+    if (status) query.status = status;
+    if (userId) query.userId = userId;
+    if (inspector) query['formData.inspector'] = { $regex: inspector, $options: 'i' };
+    if (siteName) query['formData.siteName'] = { $regex: siteName, $options: 'i' };
+
+    // Get total count
+    const total = await this.formModel.countDocuments(query);
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+    const totalPages = Math.ceil(total / limit);
+
+    // Get forms
+    const forms = await this.formModel
+      .find(query)
+      .populate('userId')
+      .sort({ createdAt: sortOrder === 'asc' ? 1 : -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    return {
+      data: forms,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
     };
   }
 

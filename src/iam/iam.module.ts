@@ -8,7 +8,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { AuthGuard } from './guards/auth/auth.guard';
-import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './guards/role/role.guard';
 
 @Module({
@@ -25,10 +24,11 @@ import { RoleGuard } from './guards/role/role.guard';
       provide: HashingService,
       useClass: BcryptService,
     },
-    { provide: APP_GUARD, useClass: AuthGuard },
-    { provide: APP_GUARD, useClass: RoleGuard },
+    AuthGuard,
+    RoleGuard,
     AuthService,
   ],
   controllers: [AuthController],
+  exports: [AuthGuard, RoleGuard, AuthService, JwtModule, ConfigModule],
 })
 export class IamModule {}

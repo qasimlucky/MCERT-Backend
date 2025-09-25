@@ -3,6 +3,7 @@ import { FormsService } from './forms.service';
 import { FormsController } from './forms.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Form, FormSchema } from './entities/form.entity';
+import { IamModule } from '../iam/iam.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Form, FormSchema } from './entities/form.entity';
         schema: FormSchema,
       },
     ]),
+    IamModule,
   ],
   controllers: [FormsController],
   providers: [FormsService],
