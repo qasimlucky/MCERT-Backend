@@ -46,7 +46,11 @@ async function bootstrap() {
     '⏰ Server timeouts configured: 5 minutes for large file operations',
   );
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: false,
+  }));
   console.log('✅ Global validation pipe enabled');
 
   // Add cookie-parser middleware

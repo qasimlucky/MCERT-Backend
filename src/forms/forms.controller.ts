@@ -66,8 +66,13 @@ export class FormsController {
   }
 
   @Get('paginated')
-  findAllPaginated(@Query() paginationDto: PaginationDto) {
-    return this.formsService.findAllPaginated(paginationDto);
+  async findAllPaginated(@Query() paginationDto: PaginationDto) {
+    try {
+      return await this.formsService.findAllPaginated(paginationDto);
+    } catch (error) {
+      console.error('Controller: Error in findAllPaginated:', error);
+      throw error;
+    }
   }
 
   @Get('user/:userId')
