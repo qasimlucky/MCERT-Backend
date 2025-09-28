@@ -4,17 +4,17 @@ import { Document, Types } from 'mongoose';
 // File Upload Schema
 @Schema({ _id: false })
 export class FileUpload {
-  @Prop({ required: true })
-  name: string;
+  @Prop()
+  name?: string;
 
-  @Prop({ required: true })
-  type: string;
+  @Prop()
+  type?: string;
 
-  @Prop({ required: true })
-  size: number;
+  @Prop()
+  size?: number;
 
-  @Prop({ required: true })
-  data: string; // Base64 encoded file data
+  @Prop()
+  data?: string; // Base64 encoded file data
 }
 
 // MCERTS Form Data Schema
@@ -24,19 +24,19 @@ export class McertsFormData {
   @Prop()
   reportPreparedBy?: string;
 
-  @Prop({ required: true })
-  inspector: string;
+  @Prop()
+  inspector?: string;
 
   // Consent/Permit Holder & Company Registration
-  @Prop({ required: true })
-  consentPermitHolder: string;
+  @Prop()
+  consentPermitHolder?: string;
 
   @Prop()
   consentPermitNo?: string;
 
   // Site Information
-  @Prop({ required: true })
-  siteName: string;
+  @Prop()
+  siteName?: string;
 
   @Prop()
   siteContact?: string;
@@ -68,8 +68,8 @@ export class McertsFormData {
   @Prop()
   flowmeterMakeModel?: string;
 
-  @Prop({ required: true })
-  flowmeterType: string;
+  @Prop()
+  flowmeterType?: string;
 
   @Prop()
   flowmeterSerial?: string;
@@ -87,8 +87,8 @@ export class McertsFormData {
   @Prop()
   inspectionReportNo?: string;
 
-  @Prop({ required: true })
-  dateOfInspection: string;
+  @Prop()
+  dateOfInspection?: string;
 
   @Prop()
   siteDescription?: string;

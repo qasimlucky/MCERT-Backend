@@ -9,32 +9,17 @@ async function bootstrap() {
   console.log('📦 Loading modules and dependencies...');
 
   const app = await NestFactory.create(AppModule, {
-    bodyParser: false, // Disable default body parser to configure our own
+    bodyParser: true, // Enable default body parser
   });
   console.log(
     '✅ NestJS application created successfully with custom body parser configuration',
   );
 
-  // Configure body size limits FIRST - CRITICAL for large payloads
+  // Configure body size limits for large payloads
   console.log('📦 Configuring body parser limits for large payloads...');
-  app.use(
-    express.json({
-      limit: '500mb',
-      strict: false, // Allow non-strict JSON parsing for large payloads
-    }),
-  ); // Increase JSON payload limit to 500MB
-  app.use(
-    express.urlencoded({
-      limit: '500mb',
-      extended: true,
-      parameterLimit: 50000, // Increase parameter limit
-    }),
-  ); // Increase URL-encoded payload limit to 500MB
-  app.use(express.raw({ limit: '500mb' })); // Add raw body parser for binary data
-  app.use(express.text({ limit: '500mb' })); // Add text body parser
-  console.log(
-    '✅ Body size limits configured: 500MB for all payload types (JSON, URL-encoded, raw, text)',
-  );
+  app.use(express.json({ limit: '500mb' }));
+  app.use(express.urlencoded({ limit: '500mb', extended: true }));
+  console.log('✅ Body size limits configured: 500MB for JSON and URL-encoded payloads');
 
   // Set server timeout for large file operations
   app.use((req: any, res: any, next: any) => {
@@ -46,12 +31,13 @@ async function bootstrap() {
     '⏰ Server timeouts configured: 5 minutes for large file operations',
   );
 
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: false,
-  }));
-  console.log('✅ Global validation pipe enabled');
+  // Temporarily disable validation pipe to debug body parsing issue
+  // app.useGlobalPipes(new ValidationPipe({
+  //   transform: true,
+  //   whitelist: true,
+  //   forbidNonWhitelisted: false,
+  // }));
+  console.log('⚠️ Global validation pipe temporarily disabled - body parsing issue');
 
   // Add cookie-parser middleware
   app.use(cookieParser());

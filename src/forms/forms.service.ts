@@ -37,9 +37,12 @@ export class FormsService {
   async create(createFormDto: CreateFormDto): Promise<FormCreationResponseDto> {
     try {
       console.log('Creating MCERTS form with data:', createFormDto);
+      console.log('userId type:', typeof createFormDto.userId);
+      console.log('userId value:', createFormDto.userId);
 
       // Ensure userId is provided and convert to ObjectId if it's a string
       if (!createFormDto.userId) {
+        console.error('userId is missing from createFormDto:', createFormDto);
         throw new Error('userId is required');
       }
 

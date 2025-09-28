@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FormsService } from './forms.service';
 import { 
@@ -29,13 +30,31 @@ export class FormsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  create(@Body() createFormDto: CreateFormDto) {
+  create(@Body() createFormDto: CreateFormDto, @Req() req: any) {
+    console.log('Create form endpoint - received data:', JSON.stringify(createFormDto, null, 2));
+    console.log('Request headers:', req.headers);
+    console.log('Request body raw:', req.body);
+    
+    // If @Body() returns empty object, use raw body as fallback
+    if (!createFormDto || Object.keys(createFormDto).length === 0) {
+      console.log('@Body() returned empty object, using raw body as fallback');
+      createFormDto = req.body as CreateFormDto;
+    }
+    
+    // Extract userId from authorization header if not in body
+    if (!createFormDto.userId && req.user?.id) {
+      createFormDto.userId = req.user.id;
+      console.log('Extracted userId from request user:', createFormDto.userId);
+    }
+    
+    console.log('Final createFormDto:', JSON.stringify(createFormDto, null, 2));
     return this.formsService.create(createFormDto);
   }
 
   @Post('submit')
   @UseGuards(AuthGuard)
   submitForm(@Body() formSubmissionDto: FormSubmissionDto) {
+    console.log('Submit form endpoint - received data:', JSON.stringify(formSubmissionDto, null, 2));
     return this.formsService.submitForm(formSubmissionDto);
   }
 
