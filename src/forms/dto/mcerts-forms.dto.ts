@@ -105,14 +105,14 @@ export class McertsFormDataDto {
 
 // Create Form DTO
 export class CreateFormDto {
-  userId: Types.ObjectId; // This will be populated with complete user data
+  userId: Types.ObjectId | string; // This will be populated with complete user data
   status?: string;
   formData?: McertsFormDataDto;
 }
 
 // Update Form DTO
 export class UpdateFormDto {
-  userId?: Types.ObjectId;
+  userId?: Types.ObjectId | string;
   status?: string;
   formData?: McertsFormDataDto;
   gridFSFileId?: string;

@@ -38,17 +38,22 @@ export class FormsService {
     try {
       console.log('Creating MCERTS form with data:', createFormDto);
 
-      // Ensure userId is provided
+      // Ensure userId is provided and convert to ObjectId if it's a string
       if (!createFormDto.userId) {
         throw new Error('userId is required');
       }
+
+      // Convert userId to ObjectId if it's a string
+      const userId = typeof createFormDto.userId === 'string' 
+        ? new Types.ObjectId(createFormDto.userId) 
+        : createFormDto.userId;
 
       // Calculate payload size
       const payloadSize = JSON.stringify(createFormDto.formData || {}).length;
       console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`);
 
       let formDocument: any = {
-        userId: createFormDto.userId,
+        userId: userId,
         status: createFormDto.status || 'pending',
         dataSize: payloadSize,
         isLargeData: false,
@@ -60,7 +65,7 @@ export class FormsService {
 
         // Store in GridFS
         const gridFSFileId = await this.storeInGridFS(createFormDto.formData, {
-          userId: createFormDto.userId,
+          userId: userId,
           formType: 'mcerts-form-submission',
         });
 
