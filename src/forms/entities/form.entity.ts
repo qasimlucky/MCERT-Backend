@@ -210,6 +210,10 @@ export class Form extends Document {
   // Size of the form data in bytes
   @Prop({ default: 0 })
   dataSize: number;
+
+  // Timestamp fields (added by timestamps: true)
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const FormSchema = SchemaFactory.createForClass(Form);

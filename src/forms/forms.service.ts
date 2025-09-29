@@ -17,6 +17,11 @@ import {
   BulkUpdateFormDto,
   BulkDeleteFormDto
 } from './dto/mcerts-forms.dto';
+import { 
+  InspectionListQueryDto, 
+  InspectionListResponseDto,
+  InspectionListItemDto 
+} from './dto/inspection-list.dto';
 
 @Injectable()
 export class FormsService {
@@ -1216,5 +1221,101 @@ export class FormsService {
       console.error('Force optimized retrieval failed:', error);
       throw error;
     }
+  }
+
+  // Simple and fast API for inspection list data
+  async getInspectionList(query: InspectionListQueryDto): Promise<InspectionListResponseDto> {
+    const startTime = Date.now();
+    const { page = 1, limit = 5, sortBy = 'createdAt', sortOrder = 'desc', status, inspector, siteName } = query;
+
+    // Build query filters - only fetch essential fields for performance
+    const queryFilter: any = {};
+
+    if (status) {
+      queryFilter.status = status;
+    }
+
+    if (inspector) {
+      queryFilter['formData.inspector'] = { $regex: inspector, $options: 'i' };
+    }
+
+    if (siteName) {
+      queryFilter['formData.siteName'] = { $regex: siteName, $options: 'i' };
+    }
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Calculate skip value
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const total = await this.formModel.countDocuments(queryFilter);
+
+    // Execute optimized query - only fetch essential fields
+    const forms = await this.formModel
+      .find(queryFilter)
+      .select('_id status formData.siteName formData.inspector formData.dateOfInspection createdAt')
+      .populate('userId', 'name email') // Only populate essential user fields
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Transform data to match the table structure
+    const inspectionList: InspectionListItemDto[] = forms.map((form) => {
+      const siteName = form.formData?.siteName || 'Unnamed Site';
+      const siteInitial = siteName.charAt(0).toUpperCase();
+      
+      // Handle createdAt date safely
+      let createdDate = 'Not specified';
+      if (form.createdAt) {
+        try {
+          createdDate = new Date(form.createdAt).toLocaleDateString('en-GB'); // DD/MM/YYYY format
+        } catch (error) {
+          console.warn('Error formatting created date:', error);
+          createdDate = 'Not specified';
+        }
+      }
+      
+      return {
+        id: form._id.toString(),
+        siteName: siteName,
+        siteId: form._id.toString(),
+        inspector: form.formData?.inspector || 'Not specified',
+        status: form.status || 'Draft',
+        dateOfInspection: form.formData?.dateOfInspection || 'Not specified',
+        createdDate: createdDate,
+        siteInitial: siteInitial,
+      };
+    });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    const response: InspectionListResponseDto = {
+      data: inspectionList,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext,
+        hasPrev,
+      },
+      summary: {
+        showing: `Showing ${skip + 1} to ${Math.min(skip + limit, total)} of ${total} results`,
+        totalResults: total,
+      },
+    };
+
+    // Log performance metrics
+    const processingTime = Date.now() - startTime;
+    console.log(`Inspection list API - Processed ${forms.length} forms in ${processingTime}ms`);
+
+    return response;
   }
 }

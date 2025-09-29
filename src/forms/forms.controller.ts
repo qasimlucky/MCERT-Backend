@@ -20,6 +20,10 @@ import {
   BulkDeleteFormDto,
   PaginationDto
 } from './dto/mcerts-forms.dto';
+import { 
+  InspectionListQueryDto, 
+  InspectionListResponseDto 
+} from './dto/inspection-list.dto';
 import { Public } from '../iam/decorators/auth.decorator';
 import { AuthGuard } from '../iam/guards/auth/auth.guard';
 
@@ -152,6 +156,12 @@ export class FormsController {
   @UseGuards(AuthGuard)
   getFormsByQuery(@Query() queryDto: FormQueryDto) {
     return this.formsService.getFormsByQuery(queryDto);
+  }
+
+  // Simple and fast API for inspection list data (must be before :id route)
+  @Get('inspection-list')
+  async getInspectionList(@Query() query: InspectionListQueryDto): Promise<InspectionListResponseDto> {
+    return this.formsService.getInspectionList(query);
   }
 
   // New bulk operation endpoints
