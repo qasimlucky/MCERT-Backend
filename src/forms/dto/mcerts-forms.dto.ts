@@ -180,6 +180,8 @@ export class FormQueryDto {
   inspector?: string;
   siteName?: string;
   userId?: Types.ObjectId;
+  inspectionList?: string; // 'true' to get inspection list format
+  sortBy?: string; // Sort field for inspection list
 }
 
 // ============================================================================

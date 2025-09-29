@@ -64,7 +64,7 @@ export class FormsController {
 
   @Get()
   async findAll(@Query() query: FormQueryDto) {
-    // If any pagination parameters are provided, use paginated version
+    // If any pagination parameters are provided, use inspection list format
     if (
       query &&
       (query.page ||
@@ -73,31 +73,19 @@ export class FormsController {
         query.inspector ||
         query.siteName)
     ) {
-      console.log('Using paginated findAll with params:', query);
-      const paginationDto = new PaginationDto();
-
-      // Map query parameters to DTO with proper type conversion
-      paginationDto.page = query.page || 1;
-      paginationDto.limit = query.limit || 10;
-      paginationDto.sortBy = 'createdAt';
-      paginationDto.sortOrder = query.sortOrder || 'desc';
-      paginationDto.search = query.inspector || query.siteName;
-      paginationDto.status = query.status;
-      paginationDto.includeFormData = true;
-
-      console.log(
-        'Controller: Calling findAllPaginated with includeFormData:',
-        paginationDto.includeFormData,
-      );
-      try {
-        const result = await this.formsService.findAllPaginated(paginationDto);
-        console.log('Controller: Successfully received pagination result');
-        return result;
-      } catch (error) {
-        console.error('Controller: Error in findAllPaginated:', error);
-        throw error;
-      }
+      console.log('Using inspection list format with params:', query);
+      const inspectionQuery: InspectionListQueryDto = {
+        page: query.page || 1,
+        limit: query.limit || 5,
+        status: query.status,
+        inspector: query.inspector,
+        siteName: query.siteName,
+        sortBy: query.sortBy || 'createdAt',
+        sortOrder: query.sortOrder || 'desc'
+      };
+      return this.formsService.getInspectionList(inspectionQuery);
     }
+    
     // Otherwise, return all forms (backwards compatibility)
     console.log('Using non-paginated findAll');
     return this.formsService.findAll();
@@ -158,11 +146,6 @@ export class FormsController {
     return this.formsService.getFormsByQuery(queryDto);
   }
 
-  // Simple and fast API for inspection list data (must be before :id route)
-  @Get('inspection-list')
-  async getInspectionList(@Query() query: InspectionListQueryDto): Promise<InspectionListResponseDto> {
-    return this.formsService.getInspectionList(query);
-  }
 
   // New bulk operation endpoints
   @Patch('bulk/update')
