@@ -35,23 +35,28 @@ export class FormsController {
   @Post()
   @UseGuards(AuthGuard)
   create(@Body() createFormDto: CreateFormDto, @Req() req: any) {
-    console.log('Create form endpoint - received data:', JSON.stringify(createFormDto, null, 2));
-    console.log('Request headers:', req.headers);
-    console.log('Request body raw:', req.body);
-    
     // If @Body() returns empty object, use raw body as fallback
     if (!createFormDto || Object.keys(createFormDto).length === 0) {
-      console.log('@Body() returned empty object, using raw body as fallback');
       createFormDto = req.body as CreateFormDto;
     }
     
     // Extract userId from authorization header if not in body
     if (!createFormDto.userId && req.user?.id) {
       createFormDto.userId = req.user.id;
-      console.log('Extracted userId from request user:', createFormDto.userId);
     }
     
-    console.log('Final createFormDto:', JSON.stringify(createFormDto, null, 2));
+    // Validate request size early to prevent processing oversized payloads
+    const requestSize = JSON.stringify(createFormDto).length;
+    const maxRequestSize = 50 * 1024 * 1024; // 50MB limit
+    
+    if (requestSize > maxRequestSize) {
+      return {
+        success: false,
+        error: 'Request payload too large',
+        message: `Request size (${(requestSize / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (50MB)`
+      };
+    }
+    
     return this.formsService.create(createFormDto);
   }
 
@@ -99,6 +104,17 @@ export class FormsController {
       console.error('Controller: Error in findAllPaginated:', error);
       throw error;
     }
+  }
+
+  @Get(':id/data')
+  findOneWithData(@Param('id') id: string) {
+    return this.formsService.findOneWithData(id);
+  }
+
+  @Post('migrate-to-files')
+  @UseGuards(AuthGuard)
+  async migrateToFileStorage() {
+    return this.formsService.migrateToFileStorage();
   }
 
   @Get('user/:userId')

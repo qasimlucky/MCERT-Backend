@@ -4,6 +4,7 @@ import { FormsController } from './forms.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Form, FormSchema } from './entities/form.entity';
 import { IamModule } from '../iam/iam.module';
+import { FileStorageService } from './file-storage.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { IamModule } from '../iam/iam.module';
     IamModule,
   ],
   controllers: [FormsController],
-  providers: [FormsService],
-  exports: [FormsService],
+  providers: [FormsService, FileStorageService],
+  exports: [FormsService, FileStorageService],
 })
 export class FormsModule {} 

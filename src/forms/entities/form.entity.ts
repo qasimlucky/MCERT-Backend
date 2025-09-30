@@ -195,17 +195,41 @@ export class Form extends Document {
   @Prop({ default: 'pending', required: true })
   status: string;
 
-  // MCERTS Form Data - stored directly for small data, GridFS for large data
+  // MCERTS Form Data - ALL data stored as files on server for maximum performance
   @Prop({ type: McertsFormData })
-  formData?: McertsFormData;
+  formData?: McertsFormData; // Only used for backward compatibility
 
-  // For large form data (>= 15MB) - stored in GridFS
+  // File storage for ALL form data (primary storage method)
+  @Prop({ type: String, required: true })
+  filePath: string;
+
+  // File storage metadata
+  @Prop({ type: String, required: true })
+  fileName: string;
+
+  @Prop({ default: false })
+  isCompressed?: boolean;
+
+  @Prop({ default: 0 })
+  fileSize?: number;
+
+  // Legacy storage methods (for backward compatibility)
+  @Prop({ type: Buffer })
+  compressedData?: Buffer;
+
   @Prop({ type: String, default: null })
   gridFSFileId?: string;
 
-  // Indicates whether data is stored in GridFS or directly
-  @Prop({ default: false })
-  isLargeData: boolean;
+  @Prop({ type: String, default: null })
+  chunkedDataId?: string;
+
+  // Storage method indicator (file is primary method for all forms)
+  @Prop({ 
+    type: String, 
+    enum: ['file', 'direct', 'compressed', 'chunked', 'gridfs', 'external'],
+    default: 'file' 
+  })
+  storageMethod: string;
 
   // Size of the form data in bytes
   @Prop({ default: 0 })
@@ -217,3 +241,11 @@ export class Form extends Document {
 }
 
 export const FormSchema = SchemaFactory.createForClass(Form);
+
+// Add database indexes for better query performance
+FormSchema.index({ userId: 1 });
+FormSchema.index({ status: 1 });
+FormSchema.index({ createdAt: -1 });
+FormSchema.index({ userId: 1, status: 1 });
+FormSchema.index({ isLargeData: 1 });
+FormSchema.index({ dataSize: 1 });
