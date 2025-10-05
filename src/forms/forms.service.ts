@@ -6,9 +6,9 @@ import { Readable } from 'stream';
 import * as zlib from 'zlib';
 import { FileStorageService } from './file-storage.service';
 import { Form } from './entities/form.entity';
-import { 
-  CreateFormDto, 
-  UpdateFormDto, 
+import {
+  CreateFormDto,
+  UpdateFormDto,
   FormSubmissionDto,
   FormResponseDto,
   PaginationDto,
@@ -17,12 +17,12 @@ import {
   ApiResponseDto,
   FormCreationResponseDto,
   BulkUpdateFormDto,
-  BulkDeleteFormDto
+  BulkDeleteFormDto,
 } from './dto/mcerts-forms.dto';
-import { 
-  InspectionListQueryDto, 
+import {
+  InspectionListQueryDto,
   InspectionListResponseDto,
-  InspectionListItemDto 
+  InspectionListItemDto,
 } from './dto/inspection-list.dto';
 
 @Injectable()
@@ -50,22 +50,26 @@ export class FormsService {
       }
 
       // Convert userId to ObjectId if it's a string
-      const userId = typeof createFormDto.userId === 'string' 
-        ? new Types.ObjectId(createFormDto.userId) 
-        : createFormDto.userId;
+      const userId =
+        typeof createFormDto.userId === 'string'
+          ? new Types.ObjectId(createFormDto.userId)
+          : createFormDto.userId;
 
       // Optimize payload size calculation - only serialize if needed
       let payloadSize = 0;
       let formData = createFormDto.formData;
-      
+
       if (formData) {
         // Quick size estimation without full JSON.stringify
         const dataString = JSON.stringify(formData);
         payloadSize = dataString.length;
-        
+
         // Log only if size is significant
-        if (payloadSize > 1024 * 1024) { // Only log if > 1MB
-      console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`);
+        if (payloadSize > 1024 * 1024) {
+          // Only log if > 1MB
+          console.log(
+            `Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`,
+          );
         }
       }
 
@@ -74,22 +78,29 @@ export class FormsService {
         status: createFormDto.status || 'pending',
         dataSize: payloadSize,
         storageMethod: 'file',
+        isLargeData: false, // File storage is not considered large data
       };
 
       // Store ALL form data as files on server (fastest and most consistent approach)
       const formId = `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const fileResult = await this.fileStorageService.storeFormData(formId, formData, {
-        compress: payloadSize > 1 * 1024 * 1024, // Compress if > 1MB for better performance
-        format: 'json'
-      });
+      const fileResult = await this.fileStorageService.storeFormData(
+        formId,
+        formData,
+        {
+          compress: payloadSize > 1 * 1024 * 1024, // Compress if > 1MB for better performance
+          format: 'json',
+        },
+      );
 
       formDocument.filePath = fileResult.filePath;
       formDocument.fileName = fileResult.filePath.split('/').pop();
       formDocument.isCompressed = fileResult.compressed;
       formDocument.fileSize = fileResult.fileSize;
       formDocument.storageMethod = 'file';
-      
-      console.log(`Form data stored as file: ${formDocument.fileName} (${(fileResult.fileSize / 1024 / 1024).toFixed(2)}MB, compressed: ${fileResult.compressed})`);
+
+      console.log(
+        `Form data stored as file: ${formDocument.fileName} (${(fileResult.fileSize / 1024 / 1024).toFixed(2)}MB, compressed: ${fileResult.compressed})`,
+      );
 
       // Save form without populate to avoid extra query
       const savedForm = await this.formModel.create(formDocument);
@@ -105,16 +116,16 @@ export class FormsService {
           chunkedDataId: savedForm.chunkedDataId,
           gridFSFileId: savedForm.gridFSFileId,
           createdAt: savedForm.createdAt,
-          updatedAt: savedForm.updatedAt
+          updatedAt: savedForm.updatedAt,
         },
-        message: 'MCERTS form created successfully'
+        message: 'MCERTS form created successfully',
       };
     } catch (error) {
       console.error('Error creating MCERTS form:', error.message);
       return {
         success: false,
         error: error.message,
-        message: 'Failed to create MCERTS form'
+        message: 'Failed to create MCERTS form',
       };
     }
   }
@@ -138,7 +149,7 @@ export class FormsService {
   // Get form with data (including file data)
   async findOneWithData(id: string): Promise<any> {
     const form = await this.formModel.findById(id).populate('userId').exec();
-    
+
     if (!form) {
       throw new NotFoundException(`Form with ID ${id} not found`);
     }
@@ -162,20 +173,22 @@ export class FormsService {
     errors: string[];
   }> {
     console.log('Starting migration to file storage...');
-    
+
     const errors: string[] = [];
     let migratedForms = 0;
     let failedForms = 0;
 
     try {
       // Find all forms that are not already using file storage
-      const formsToMigrate = await this.formModel.find({
-        $or: [
-          { storageMethod: { $ne: 'file' } },
-          { filePath: { $exists: false } },
-          { filePath: null }
-        ]
-      }).exec();
+      const formsToMigrate = await this.formModel
+        .find({
+          $or: [
+            { storageMethod: { $ne: 'file' } },
+            { filePath: { $exists: false } },
+            { filePath: null },
+          ],
+        })
+        .exec();
 
       console.log(`Found ${formsToMigrate.length} forms to migrate`);
 
@@ -183,9 +196,11 @@ export class FormsService {
         try {
           await this.migrateSingleForm(form);
           migratedForms++;
-          
+
           if (migratedForms % 10 === 0) {
-            console.log(`Migrated ${migratedForms}/${formsToMigrate.length} forms...`);
+            console.log(
+              `Migrated ${migratedForms}/${formsToMigrate.length} forms...`,
+            );
           }
         } catch (error) {
           failedForms++;
@@ -195,13 +210,15 @@ export class FormsService {
         }
       }
 
-      console.log(`Migration completed: ${migratedForms} migrated, ${failedForms} failed`);
+      console.log(
+        `Migration completed: ${migratedForms} migrated, ${failedForms} failed`,
+      );
 
       return {
         totalForms: formsToMigrate.length,
         migratedForms,
         failedForms,
-        errors
+        errors,
       };
     } catch (error) {
       console.error('Migration failed:', error);
@@ -238,10 +255,14 @@ export class FormsService {
 
     // Store form data as file
     const formId = form._id.toString();
-    const fileResult = await this.fileStorageService.storeFormData(formId, formData, {
-      compress: JSON.stringify(formData).length > 1024 * 1024, // Compress if > 1MB
-      format: 'json'
-    });
+    const fileResult = await this.fileStorageService.storeFormData(
+      formId,
+      formData,
+      {
+        compress: JSON.stringify(formData).length > 1024 * 1024, // Compress if > 1MB
+        format: 'json',
+      },
+    );
 
     // Update form document
     await this.formModel.updateOne(
@@ -252,16 +273,16 @@ export class FormsService {
           fileName: fileResult.filePath.split('/').pop(),
           isCompressed: fileResult.compressed,
           fileSize: fileResult.fileSize,
-          storageMethod: 'file'
+          storageMethod: 'file',
         },
         $unset: {
           formData: 1,
           compressedData: 1,
           gridFSFileId: 1,
           chunkedDataId: 1,
-          isLargeData: 1
-        }
-      }
+          isLargeData: 1,
+        },
+      },
     );
 
     console.log(`Migrated form ${form._id} to file: ${fileResult.filePath}`);
@@ -271,7 +292,7 @@ export class FormsService {
   async findAllLegacy(): Promise<any[]> {
     const forms = await this.formModel.find().populate('userId').exec();
     const processedForms = [];
-    
+
     for (const form of forms) {
       if (form.isLargeData && form.gridFSFileId) {
         try {
@@ -699,12 +720,14 @@ export class FormsService {
   }
 
   // New method for form submission
-  async submitForm(formSubmissionDto: FormSubmissionDto): Promise<FormCreationResponseDto> {
+  async submitForm(
+    formSubmissionDto: FormSubmissionDto,
+  ): Promise<FormCreationResponseDto> {
     try {
       const createFormDto: CreateFormDto = {
         userId: new Types.ObjectId(formSubmissionDto.userId),
         status: formSubmissionDto.status || 'submitted',
-        formData: formSubmissionDto.formData
+        formData: formSubmissionDto.formData,
       };
 
       return await this.create(createFormDto);
@@ -713,13 +736,15 @@ export class FormsService {
       return {
         success: false,
         error: error.message,
-        message: 'Failed to submit form'
+        message: 'Failed to submit form',
       };
     }
   }
 
   // Bulk update forms
-  async bulkUpdateForms(bulkUpdateDto: BulkUpdateFormDto): Promise<ApiResponseDto> {
+  async bulkUpdateForms(
+    bulkUpdateDto: BulkUpdateFormDto,
+  ): Promise<ApiResponseDto> {
     try {
       const { formIds, status, formData } = bulkUpdateDto;
 
@@ -729,32 +754,34 @@ export class FormsService {
 
       const result = await this.formModel.updateMany(
         { _id: { $in: formIds } },
-        updateData
+        updateData,
       );
 
       return {
         success: true,
         data: { modifiedCount: result.modifiedCount },
-        message: `Successfully updated ${result.modifiedCount} forms`
+        message: `Successfully updated ${result.modifiedCount} forms`,
       };
     } catch (error) {
       console.error('Error in bulk update:', error);
       return {
         success: false,
         error: error.message,
-        message: 'Failed to bulk update forms'
+        message: 'Failed to bulk update forms',
       };
     }
   }
 
   // Bulk delete forms
-  async bulkDeleteForms(bulkDeleteDto: BulkDeleteFormDto): Promise<ApiResponseDto> {
+  async bulkDeleteForms(
+    bulkDeleteDto: BulkDeleteFormDto,
+  ): Promise<ApiResponseDto> {
     try {
       const { formIds } = bulkDeleteDto;
 
       // Get forms to clean up GridFS data
       const forms = await this.formModel.find({ _id: { $in: formIds } });
-      
+
       // Clean up GridFS data for large forms
       for (const form of forms) {
         if (form.isLargeData && form.gridFSFileId) {
@@ -767,28 +794,38 @@ export class FormsService {
       return {
         success: true,
         data: { deletedCount: result.deletedCount },
-        message: `Successfully deleted ${result.deletedCount} forms`
+        message: `Successfully deleted ${result.deletedCount} forms`,
       };
     } catch (error) {
       console.error('Error in bulk delete:', error);
       return {
         success: false,
         error: error.message,
-        message: 'Failed to bulk delete forms'
+        message: 'Failed to bulk delete forms',
       };
     }
   }
 
   // Get forms by query parameters
   async getFormsByQuery(queryDto: FormQueryDto): Promise<PaginatedFormsDto> {
-    const { page = 1, limit = 5, sortOrder = 'desc', status, inspector, siteName, userId } = queryDto;
+    const {
+      page = 1,
+      limit = 5,
+      sortOrder = 'desc',
+      status,
+      inspector,
+      siteName,
+      userId,
+    } = queryDto;
 
     // Build query
     const query: any = {};
     if (status) query.status = status;
     if (userId) query.userId = userId;
-    if (inspector) query['formData.inspector'] = { $regex: inspector, $options: 'i' };
-    if (siteName) query['formData.siteName'] = { $regex: siteName, $options: 'i' };
+    if (inspector)
+      query['formData.inspector'] = { $regex: inspector, $options: 'i' };
+    if (siteName)
+      query['formData.siteName'] = { $regex: siteName, $options: 'i' };
 
     // Get total count
     const total = await this.formModel.countDocuments(query);
@@ -812,13 +849,13 @@ export class FormsService {
         page,
         limit,
         total,
-        totalPages
-      }
+        totalPages,
+      },
     };
   }
 
   // Alternative Storage Methods (Better than GridFS)
-  
+
   // Method 1: Compressed Direct Storage (Fastest)
   private compressData(data: any): Buffer {
     const jsonData = JSON.stringify(data);
@@ -834,9 +871,12 @@ export class FormsService {
   private async getFormData(form: any): Promise<any> {
     // Always try file storage first (primary method)
     if (form.filePath) {
-      return await this.fileStorageService.retrieveFormData(form.filePath, form.isCompressed);
+      return await this.fileStorageService.retrieveFormData(
+        form.filePath,
+        form.isCompressed,
+      );
     }
-    
+
     // Fallback to other methods for backward compatibility
     switch (form.storageMethod) {
       case 'direct':
@@ -860,42 +900,46 @@ export class FormsService {
     const jsonData = JSON.stringify(data);
     const chunkSize = 1024 * 1024; // 1MB chunks
     const chunks = [];
-    
+
     for (let i = 0; i < jsonData.length; i += chunkSize) {
       chunks.push({
         formId,
         chunkIndex: Math.floor(i / chunkSize),
         data: jsonData.slice(i, i + chunkSize),
-        totalChunks: Math.ceil(jsonData.length / chunkSize)
+        totalChunks: Math.ceil(jsonData.length / chunkSize),
       });
     }
-    
+
     // Store chunks in a separate collection
     await this.connection.db.collection('formChunks').insertMany(chunks);
     return formId;
   }
 
   private async retrieveFromChunks(formId: string): Promise<any> {
-    const chunks = await this.connection.db.collection('formChunks')
+    const chunks = await this.connection.db
+      .collection('formChunks')
       .find({ formId })
       .sort({ chunkIndex: 1 })
       .toArray();
-    
-    const data = chunks.map(chunk => chunk.data).join('');
+
+    const data = chunks.map((chunk) => chunk.data).join('');
     return JSON.parse(data);
   }
 
   // Method 3: External File Storage (AWS S3, Azure Blob, etc.)
-  private async storeInExternalStorage(data: any, metadata: any): Promise<string> {
+  private async storeInExternalStorage(
+    data: any,
+    metadata: any,
+  ): Promise<string> {
     // This would integrate with cloud storage services
     // For now, return a placeholder
     const fileId = `ext-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // In a real implementation, you would:
     // 1. Upload to S3/Azure Blob Storage
     // 2. Return the file URL or ID
     // 3. Store the URL in the database
-    
+
     return fileId;
   }
 
@@ -903,29 +947,29 @@ export class FormsService {
   private async storeInGridFS(data: any, metadata: any): Promise<ObjectId> {
     return new Promise((resolve, reject) => {
       try {
-      const jsonData = JSON.stringify(data);
-      const readableStream = new Readable();
-      readableStream.push(jsonData);
-      readableStream.push(null);
+        const jsonData = JSON.stringify(data);
+        const readableStream = new Readable();
+        readableStream.push(jsonData);
+        readableStream.push(null);
 
-      const uploadStream = this.gridFSBucket.openUploadStream(
+        const uploadStream = this.gridFSBucket.openUploadStream(
           `form-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`,
-          { 
-            metadata: { 
-              ...metadata, 
+          {
+            metadata: {
+              ...metadata,
               createdAt: new Date(),
-              contentType: 'application/json'
-            } 
+              contentType: 'application/json',
+            },
           },
-      );
+        );
 
-      uploadStream.on('finish', () => resolve(uploadStream.id));
+        uploadStream.on('finish', () => resolve(uploadStream.id));
         uploadStream.on('error', (error) => {
           console.error('GridFS upload error:', error);
           reject(error);
         });
 
-      readableStream.pipe(uploadStream);
+        readableStream.pipe(uploadStream);
       } catch (error) {
         console.error('GridFS preparation error:', error);
         reject(error);
@@ -1479,9 +1523,19 @@ export class FormsService {
   }
 
   // Simple and fast API for inspection list data
-  async getInspectionList(query: InspectionListQueryDto): Promise<InspectionListResponseDto> {
+  async getInspectionList(
+    query: InspectionListQueryDto,
+  ): Promise<InspectionListResponseDto> {
     const startTime = Date.now();
-    const { page = 1, limit = 5, sortBy = 'createdAt', sortOrder = 'desc', status, inspector, siteName } = query;
+    const {
+      page = 1,
+      limit = 5,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      status,
+      inspector,
+      siteName,
+    } = query;
 
     // Build query filters - only fetch essential fields for performance
     const queryFilter: any = {};
@@ -1511,7 +1565,9 @@ export class FormsService {
     // Execute optimized query - only fetch essential fields
     const forms = await this.formModel
       .find(queryFilter)
-      .select('_id status formData.siteName formData.inspector formData.dateOfInspection createdAt')
+      .select(
+        '_id status formData.siteName formData.inspector formData.dateOfInspection createdAt',
+      )
       .populate('userId', 'name email') // Only populate essential user fields
       .sort(sort)
       .skip(skip)
@@ -1522,7 +1578,7 @@ export class FormsService {
     const inspectionList: InspectionListItemDto[] = forms.map((form) => {
       const siteName = form.formData?.siteName || 'Unnamed Site';
       const siteInitial = siteName.charAt(0).toUpperCase();
-      
+
       // Handle createdAt date safely
       let createdDate = 'Not specified';
       if (form.createdAt) {
@@ -1533,7 +1589,7 @@ export class FormsService {
           createdDate = 'Not specified';
         }
       }
-      
+
       return {
         id: form._id.toString(),
         siteName: siteName,
@@ -1569,7 +1625,9 @@ export class FormsService {
 
     // Log performance metrics
     const processingTime = Date.now() - startTime;
-    console.log(`Inspection list API - Processed ${forms.length} forms in ${processingTime}ms`);
+    console.log(
+      `Inspection list API - Processed ${forms.length} forms in ${processingTime}ms`,
+    );
 
     return response;
   }

@@ -224,16 +224,20 @@ export class Form extends Document {
   chunkedDataId?: string;
 
   // Storage method indicator (file is primary method for all forms)
-  @Prop({ 
-    type: String, 
+  @Prop({
+    type: String,
     enum: ['file', 'direct', 'compressed', 'chunked', 'gridfs', 'external'],
-    default: 'file' 
+    default: 'file',
   })
   storageMethod: string;
 
   // Size of the form data in bytes
   @Prop({ default: 0 })
   dataSize: number;
+
+  // Flag to indicate if form data is large (uses GridFS or other large storage)
+  @Prop({ default: false })
+  isLargeData: boolean;
 
   // Timestamp fields (added by timestamps: true)
   createdAt?: Date;
