@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { FormsModule } from './forms/forms.module';
+import { SecondFormsModule } from './second-forms/second-forms.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IamModule } from './iam/iam.module';
@@ -26,6 +27,7 @@ import { OnlyofficeModule } from './onlyoffice/onlyoffice.module';
     }),
     UsersModule,
     FormsModule,
+    SecondFormsModule,
     IamModule,
     SitesModule,
     OnlyofficeModule,

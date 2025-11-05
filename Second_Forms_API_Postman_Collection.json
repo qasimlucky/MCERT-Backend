@@ -1,0 +1,562 @@
+{
+  "info": {
+    "name": "Second Forms API Collection",
+    "description": "Complete CRUD operations for Second Forms management with MCERTS form data structure. All APIs are separate from the original forms API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "secondFormId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "507f1f77bcf86cd799439011",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Second Form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"status\": \"pending\",\n  \"formData\": {\n    \"reportPreparedBy\": \"John Doe\",\n    \"inspector\": \"Jane Smith\",\n    \"consentPermitHolder\": \"ABC Company Ltd\",\n    \"consentPermitNo\": \"CP123456\",\n    \"siteName\": \"Sample Site\",\n    \"siteContact\": \"contact@example.com\",\n    \"siteAddress\": \"123 Main Street\",\n    \"siteRefPostcode\": \"12345\",\n    \"irishGridRef\": \"IG123456\",\n    \"flowmeterMakeModel\": \"Model XYZ\",\n    \"flowmeterType\": \"Type A\",\n    \"flowmeterSerial\": \"SN123456\",\n    \"niwAssetId\": \"NIW001\",\n    \"statementOfCompliance\": \"Compliant\",\n    \"inspectionReportNo\": \"IR001\",\n    \"dateOfInspection\": \"2024-01-15\",\n    \"siteDescription\": \"Industrial site with wastewater treatment\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms"]
+        },
+        "description": "Create a new second form with MCERTS form data structure. REQUIRED: userId, OPTIONAL: status, formData."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Second Form (Minimal)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms"]
+        },
+        "description": "Create a second form with only required userId (status will default to 'pending', formData will default to empty object)."
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Second Form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"status\": \"submitted\",\n  \"formData\": {\n    \"reportPreparedBy\": \"John Doe\",\n    \"inspector\": \"Jane Smith\",\n    \"siteName\": \"Sample Site\",\n    \"dateOfInspection\": \"2024-01-15\",\n    \"statementOfCompliance\": \"Compliant\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/submit",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "submit"]
+        },
+        "description": "Submit a second form with complete form data. This will create a form with status 'submitted'."
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Second Forms",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms"]
+        },
+        "description": "Retrieve all second forms from the database. If query parameters are provided (page, limit, status, inspector, siteName), returns inspection list format."
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Second Forms (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/paginated?page=1&limit=10&sortBy=createdAt&sortOrder=desc&status=pending",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "paginated"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Items per page"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt",
+              "description": "Field to sort by"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc",
+              "description": "Sort order (asc/desc)"
+            },
+            {
+              "key": "status",
+              "value": "pending",
+              "description": "Filter by status",
+              "disabled": true
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search term",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get paginated list of second forms with optional filtering and sorting."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Inspection List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms?page=1&limit=5&status=submitted&inspector=Jane&siteName=Sample",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            },
+            {
+              "key": "status",
+              "value": "submitted",
+              "disabled": true
+            },
+            {
+              "key": "inspector",
+              "value": "Jane",
+              "disabled": true
+            },
+            {
+              "key": "siteName",
+              "value": "Sample",
+              "disabled": true
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            }
+          ]
+        },
+        "description": "Get inspection list format with pagination and filtering options. Returns optimized data for inspection lists."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Second Form by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/{{secondFormId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "{{secondFormId}}"]
+        },
+        "description": "Retrieve a specific second form by its ID."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Second Form with Data by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/{{secondFormId}}/data",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "{{secondFormId}}", "data"]
+        },
+        "description": "Retrieve a specific second form by its ID with complete form data (retrieved from file storage)."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Second Forms by User ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/user/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "user", "{{userId}}"]
+        },
+        "description": "Retrieve all second forms for a specific user. If query parameters are provided, returns paginated version."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Second Forms by User ID (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/user/{{userId}}/paginated?page=1&limit=10&sortBy=createdAt&sortOrder=desc&includeFormData=true",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "user", "{{userId}}", "paginated"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "includeFormData",
+              "value": "true",
+              "description": "Include form data in response"
+            },
+            {
+              "key": "status",
+              "value": "",
+              "description": "Filter by status",
+              "disabled": true
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search term",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get paginated list of second forms for a specific user with optional filtering."
+      },
+      "response": []
+    },
+    {
+      "name": "Query Second Forms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/query?page=1&limit=5&status=pending&inspector=Jane&siteName=Sample",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "query"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "5"
+            },
+            {
+              "key": "status",
+              "value": "pending",
+              "disabled": true
+            },
+            {
+              "key": "inspector",
+              "value": "Jane",
+              "disabled": true
+            },
+            {
+              "key": "siteName",
+              "value": "Sample",
+              "disabled": true
+            },
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "Filter by user ID",
+              "disabled": true
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            }
+          ]
+        },
+        "description": "Query second forms with advanced filtering options (requires authentication)."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Second Form",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\",\n  \"formData\": {\n    \"inspector\": \"Updated Inspector Name\",\n    \"siteName\": \"Updated Site Name\",\n    \"statementOfCompliance\": \"Updated compliance status\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/{{secondFormId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "{{secondFormId}}"]
+        },
+        "description": "Update an existing second form (partial update supported). Only provided fields will be updated."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Second Form",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/{{secondFormId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "{{secondFormId}}"]
+        },
+        "description": "Delete a second form by its ID. Also deletes associated file storage."
+      },
+      "response": []
+    },
+    {
+      "name": "Bulk Update Second Forms",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"formIds\": [\n    \"{{secondFormId}}\"\n  ],\n  \"status\": \"completed\",\n  \"formData\": {\n    \"inspector\": \"Bulk Updated Inspector\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/bulk/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "bulk", "update"]
+        },
+        "description": "Update multiple second forms at once. Provide array of form IDs and fields to update."
+      },
+      "response": []
+    },
+    {
+      "name": "Bulk Delete Second Forms",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"formIds\": [\n    \"{{secondFormId}}\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/bulk/delete",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "bulk", "delete"]
+        },
+        "description": "Delete multiple second forms at once. Provide array of form IDs."
+      },
+      "response": []
+    },
+    {
+      "name": "Migrate Second Forms to File Storage",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/second-forms/migrate-to-files",
+          "host": ["{{baseUrl}}"],
+          "path": ["second-forms", "migrate-to-files"]
+        },
+        "description": "Migrate existing second forms from other storage methods to file storage. Returns migration statistics."
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script can be used to set dynamic variables"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-extract second form ID from create response",
+          "if (pm.info.requestName === 'Create Second Form' || pm.info.requestName === 'Create Second Form (Minimal)' || pm.info.requestName === 'Submit Second Form') {",
+          "    const response = pm.response.json();",
+          "    if (response.data && response.data._id) {",
+          "        pm.collectionVariables.set('secondFormId', response.data._id);",
+          "        console.log('Second Form ID extracted:', response.data._id);",
+          "    }",
+          "    ",
+          "    // Test that required fields are present",
+          "    pm.test('Response contains success field', function () {",
+          "        pm.expect(response).to.have.property('success');",
+          "    });",
+          "    ",
+          "    pm.test('Response contains data field', function () {",
+          "        pm.expect(response).to.have.property('data');",
+          "    });",
+          "    ",
+          "    if (response.data) {",
+          "        pm.test('Data contains _id', function () {",
+          "            pm.expect(response.data).to.have.property('_id');",
+          "        });",
+          "        ",
+          "        pm.test('Data contains userId', function () {",
+          "            pm.expect(response.data).to.have.property('userId');",
+          "        });",
+          "        ",
+          "        pm.test('Data contains status', function () {",
+          "            pm.expect(response.data).to.have.property('status');",
+          "        });",
+          "    }",
+          "}",
+          "",
+          "// Test response status",
+          "pm.test('Status code is 200, 201, or 204', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "});",
+          "",
+          "// Test response time",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "// Test that response is JSON (for non-empty responses)",
+          "if (pm.response.code !== 204 && pm.response.text()) {",
+          "    pm.test('Response is valid JSON', function () {",
+          "        pm.response.to.be.json;",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
+
