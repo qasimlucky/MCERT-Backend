@@ -118,6 +118,12 @@ export class UpdateSecondFormDto {
   gridFSFileId?: string;
   isLargeData?: boolean;
   dataSize?: number;
+  // File storage properties
+  filePath?: string;
+  fileName?: string;
+  isCompressed?: boolean;
+  fileSize?: number;
+  storageMethod?: string;
 }
 
 // Form Submission DTO (for the complete payload)
