@@ -43,6 +43,9 @@ export class McertsFormDataDto {
   flowmeterMakeModel?: string;
   flowmeterType?: string;
   flowmeterSerial?: string;
+  secondaryDeviceType?: string;
+  flowmeterTransmitterSerial?: string;
+  flowmeterSensorSerial?: string;
   niwAssetId?: string;
 
   // Compliance and Inspection Details
@@ -52,6 +55,64 @@ export class McertsFormDataDto {
   dateOfInspection?: string;
   siteDescription?: string;
   flowmeterLocation?: string;
+
+  // MCERTS Certification
+  mcertProductCertified?: string;
+  mcertCertificateNo?: string;
+  mcertCertificationDate?: string;
+
+  // Primary Device Information
+  primaryDeviceType?: string;
+  primaryDeviceDescription?: string;
+  primaryDeviceCompliance?: string;
+  primaryDeviceImages?: FileUploadDto[];
+
+  // Secondary Device Information
+  secondaryDeviceTransmitter?: string;
+  secondaryDeviceSensor?: string;
+  secondaryDeviceCompliance?: string;
+  secondaryDeviceImages?: FileUploadDto[];
+  secondaryDeviceDescription?: string;
+
+  // Verification Details
+  verificationDescription?: string;
+  verificationCalibrationReference?: string;
+  verificationPlateMeasurement?: string;
+  verificationInstrumentDisplay?: string;
+  verificationHeadError?: string;
+  verificationRepeatabilityError?: string;
+  verificationCurvePointCheck?: string;
+  verificationImages?: FileUploadDto[];
+
+  // Telemetry Information
+  telemetryCheck?: string;
+  telemetryUncertainty?: string;
+
+  // NIEA Viewpoint
+  nieaViewpointDescription?: string;
+  nieaInstantaneousFlow?: string;
+  nieaPeriodTotal?: string;
+  nieaSecondaryDisplay?: string;
+  nieaMcertSticker?: string;
+  nieaImages?: FileUploadDto[];
+  nieaDescription?: string;
+
+  // Routine Maintenance
+  routineMaintenanceDescription?: string;
+  routineMaintenanceImages?: FileUploadDto[];
+
+  // Routine Verification
+  routineVerificationDescription?: string;
+  routineVerificationImages?: FileUploadDto[];
+
+  // Additional Dates and Information
+  nextFlowValidationDate?: string;
+  criticalDataStickerImages?: FileUploadDto[];
+  surveyEquipmentTable?: any[];
+
+  // Conclusion Uncertainty Sheets
+  conclusionUncertaintySheetF2?: string;
+  conclusionUncertaintySheetF104?: string;
 
   // Permit Limits
   wocNumber?: string;

@@ -75,6 +75,15 @@ export class McertsFormData {
   flowmeterSerial?: string;
 
   @Prop()
+  secondaryDeviceType?: string;
+
+  @Prop()
+  flowmeterTransmitterSerial?: string;
+
+  @Prop()
+  flowmeterSensorSerial?: string;
+
+  @Prop()
   niwAssetId?: string;
 
   // Compliance and Inspection Details
@@ -95,6 +104,130 @@ export class McertsFormData {
 
   @Prop()
   flowmeterLocation?: string;
+
+  // MCERTS Certification
+  @Prop()
+  mcertProductCertified?: string;
+
+  @Prop()
+  mcertCertificateNo?: string;
+
+  @Prop()
+  mcertCertificationDate?: string;
+
+  // Primary Device Information
+  @Prop()
+  primaryDeviceType?: string;
+
+  @Prop()
+  primaryDeviceDescription?: string;
+
+  @Prop()
+  primaryDeviceCompliance?: string;
+
+  @Prop({ type: [FileUpload] })
+  primaryDeviceImages?: FileUpload[];
+
+  // Secondary Device Information
+  @Prop()
+  secondaryDeviceTransmitter?: string;
+
+  @Prop()
+  secondaryDeviceSensor?: string;
+
+  @Prop()
+  secondaryDeviceCompliance?: string;
+
+  @Prop({ type: [FileUpload] })
+  secondaryDeviceImages?: FileUpload[];
+
+  @Prop()
+  secondaryDeviceDescription?: string;
+
+  // Verification Details
+  @Prop()
+  verificationDescription?: string;
+
+  @Prop()
+  verificationCalibrationReference?: string;
+
+  @Prop()
+  verificationPlateMeasurement?: string;
+
+  @Prop()
+  verificationInstrumentDisplay?: string;
+
+  @Prop()
+  verificationHeadError?: string;
+
+  @Prop()
+  verificationRepeatabilityError?: string;
+
+  @Prop()
+  verificationCurvePointCheck?: string;
+
+  @Prop({ type: [FileUpload] })
+  verificationImages?: FileUpload[];
+
+  // Telemetry Information
+  @Prop()
+  telemetryCheck?: string;
+
+  @Prop()
+  telemetryUncertainty?: string;
+
+  // NIEA Viewpoint
+  @Prop()
+  nieaViewpointDescription?: string;
+
+  @Prop()
+  nieaInstantaneousFlow?: string;
+
+  @Prop()
+  nieaPeriodTotal?: string;
+
+  @Prop()
+  nieaSecondaryDisplay?: string;
+
+  @Prop()
+  nieaMcertSticker?: string;
+
+  @Prop({ type: [FileUpload] })
+  nieaImages?: FileUpload[];
+
+  @Prop()
+  nieaDescription?: string;
+
+  // Routine Maintenance
+  @Prop()
+  routineMaintenanceDescription?: string;
+
+  @Prop({ type: [FileUpload] })
+  routineMaintenanceImages?: FileUpload[];
+
+  // Routine Verification
+  @Prop()
+  routineVerificationDescription?: string;
+
+  @Prop({ type: [FileUpload] })
+  routineVerificationImages?: FileUpload[];
+
+  // Additional Dates and Information
+  @Prop()
+  nextFlowValidationDate?: string;
+
+  @Prop({ type: [FileUpload] })
+  criticalDataStickerImages?: FileUpload[];
+
+  @Prop({ type: [Object] })
+  surveyEquipmentTable?: any[];
+
+  // Conclusion Uncertainty Sheets
+  @Prop()
+  conclusionUncertaintySheetF2?: string;
+
+  @Prop()
+  conclusionUncertaintySheetF104?: string;
 
   // Permit Limits
   @Prop()
