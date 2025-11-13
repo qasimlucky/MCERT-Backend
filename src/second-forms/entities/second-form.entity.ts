@@ -64,6 +64,9 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   aerialViewImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  aerialViewCaptions?: string[];
+
   // Flowmeter Information
   @Prop()
   flowmeterMakeModel?: string;
@@ -128,6 +131,9 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   primaryDeviceImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  primaryDeviceCaptions?: string[];
+
   // Secondary Device Information
   @Prop()
   secondaryDeviceTransmitter?: string;
@@ -140,6 +146,9 @@ export class McertsFormData {
 
   @Prop({ type: [FileUpload] })
   secondaryDeviceImages?: FileUpload[];
+
+  @Prop({ type: [String] })
+  secondaryDeviceCaptions?: string[];
 
   @Prop()
   secondaryDeviceDescription?: string;
@@ -169,6 +178,9 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   verificationImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  verificationCaptions?: string[];
+
   // Telemetry Information
   @Prop()
   telemetryCheck?: string;
@@ -195,6 +207,9 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   nieaImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  nieaCaptions?: string[];
+
   @Prop()
   nieaDescription?: string;
 
@@ -205,6 +220,9 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   routineMaintenanceImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  routineMaintenanceCaptions?: string[];
+
   // Routine Verification
   @Prop()
   routineVerificationDescription?: string;
@@ -212,12 +230,18 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   routineVerificationImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  routineVerificationCaptions?: string[];
+
   // Additional Dates and Information
   @Prop()
   nextFlowValidationDate?: string;
 
   @Prop({ type: [FileUpload] })
   criticalDataStickerImages?: FileUpload[];
+
+  @Prop({ type: [String] })
+  criticalDataStickerCaptions?: string[];
 
   @Prop({ type: [Object] })
   surveyEquipmentTable?: any[];
@@ -262,12 +286,18 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   siteProcessImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  siteProcessCaptions?: string[];
+
   // Inspection of flow monitoring system 4.0
   @Prop()
   inspectionFlowDescription?: string;
 
   @Prop({ type: [FileUpload] })
   inspectionFlowImages?: FileUpload[];
+
+  @Prop({ type: [String] })
+  inspectionFlowCaptions?: string[];
 
   // Flow measurement verification check 5.0
   @Prop()
@@ -276,12 +306,18 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   flowMeasurementImages?: FileUpload[];
 
+  @Prop({ type: [String] })
+  flowMeasurementCaptions?: string[];
+
   // Survey measurement equipment 6.0
   @Prop()
   surveyEquipmentDescription?: string;
 
   @Prop({ type: [FileUpload] })
   surveyEquipmentImages?: FileUpload[];
+
+  @Prop({ type: [String] })
+  surveyEquipmentCaptions?: string[];
 
   // Conclusion section
   @Prop()
@@ -303,11 +339,20 @@ export class McertsFormData {
   @Prop({ type: [FileUpload] })
   appendixAFiles?: FileUpload[];
 
+  @Prop({ type: [String] })
+  appendixACaptions?: string[];
+
   @Prop({ type: [FileUpload] })
   appendixBFiles?: FileUpload[];
 
+  @Prop({ type: [String] })
+  appendixBCaptions?: string[];
+
   @Prop({ type: [FileUpload] })
   appendixCFiles?: FileUpload[];
+
+  @Prop({ type: [String] })
+  appendixCCaptions?: string[];
 
   // Signature fields
   @Prop()

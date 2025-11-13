@@ -38,6 +38,7 @@ export class McertsFormDataDto {
   // Aerial view & general arrangement section
   aerialViewDescription?: string;
   aerialViewImages?: FileUploadDto[];
+  aerialViewCaptions?: string[];
 
   // Flowmeter Information
   flowmeterMakeModel?: string;
@@ -66,12 +67,14 @@ export class McertsFormDataDto {
   primaryDeviceDescription?: string;
   primaryDeviceCompliance?: string;
   primaryDeviceImages?: FileUploadDto[];
+  primaryDeviceCaptions?: string[];
 
   // Secondary Device Information
   secondaryDeviceTransmitter?: string;
   secondaryDeviceSensor?: string;
   secondaryDeviceCompliance?: string;
   secondaryDeviceImages?: FileUploadDto[];
+  secondaryDeviceCaptions?: string[];
   secondaryDeviceDescription?: string;
 
   // Verification Details
@@ -83,6 +86,7 @@ export class McertsFormDataDto {
   verificationRepeatabilityError?: string;
   verificationCurvePointCheck?: string;
   verificationImages?: FileUploadDto[];
+  verificationCaptions?: string[];
 
   // Telemetry Information
   telemetryCheck?: string;
@@ -95,19 +99,23 @@ export class McertsFormDataDto {
   nieaSecondaryDisplay?: string;
   nieaMcertSticker?: string;
   nieaImages?: FileUploadDto[];
+  nieaCaptions?: string[];
   nieaDescription?: string;
 
   // Routine Maintenance
   routineMaintenanceDescription?: string;
   routineMaintenanceImages?: FileUploadDto[];
+  routineMaintenanceCaptions?: string[];
 
   // Routine Verification
   routineVerificationDescription?: string;
   routineVerificationImages?: FileUploadDto[];
+  routineVerificationCaptions?: string[];
 
   // Additional Dates and Information
   nextFlowValidationDate?: string;
   criticalDataStickerImages?: FileUploadDto[];
+  criticalDataStickerCaptions?: string[];
   surveyEquipmentTable?: any[];
 
   // Conclusion Uncertainty Sheets
@@ -129,18 +137,22 @@ export class McertsFormDataDto {
   // Site process & schematic diagram 3.0
   siteProcessDescription?: string;
   siteProcessImages?: FileUploadDto[];
+  siteProcessCaptions?: string[];
 
   // Inspection of flow monitoring system 4.0
   inspectionFlowDescription?: string;
   inspectionFlowImages?: FileUploadDto[];
+  inspectionFlowCaptions?: string[];
 
   // Flow measurement verification check 5.0
   flowMeasurementDescription?: string;
   flowMeasurementImages?: FileUploadDto[];
+  flowMeasurementCaptions?: string[];
 
   // Survey measurement equipment 6.0
   surveyEquipmentDescription?: string;
   surveyEquipmentImages?: FileUploadDto[];
+  surveyEquipmentCaptions?: string[];
 
   // Conclusion section
   conclusionUnCert?: string;
@@ -151,8 +163,11 @@ export class McertsFormDataDto {
   appendixField2?: string;
   appendixField3?: string;
   appendixAFiles?: FileUploadDto[];
+  appendixACaptions?: string[];
   appendixBFiles?: FileUploadDto[];
+  appendixBCaptions?: string[];
   appendixCFiles?: FileUploadDto[];
+  appendixCCaptions?: string[];
 
   // Signature fields
   signatureIncluded?: boolean;
