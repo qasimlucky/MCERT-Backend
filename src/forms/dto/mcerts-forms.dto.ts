@@ -38,6 +38,7 @@ export class McertsFormDataDto {
   // Aerial view & general arrangement section
   aerialViewDescription?: string;
   aerialViewImages?: FileUploadDto[];
+  aerialViewCaptions?: string[];
 
   // Flowmeter Information
   flowmeterMakeModel?: string;
@@ -68,18 +69,22 @@ export class McertsFormDataDto {
   // Site process & schematic diagram 3.0
   siteProcessDescription?: string;
   siteProcessImages?: FileUploadDto[];
+  siteProcessCaptions?: string[];
 
   // Inspection of flow monitoring system 4.0
   inspectionFlowDescription?: string;
   inspectionFlowImages?: FileUploadDto[];
+  inspectionFlowCaptions?: string[];
 
   // Flow measurement verification check 5.0
   flowMeasurementDescription?: string;
   flowMeasurementImages?: FileUploadDto[];
+  flowMeasurementCaptions?: string[];
 
   // Survey measurement equipment 6.0
   surveyEquipmentDescription?: string;
   surveyEquipmentImages?: FileUploadDto[];
+  surveyEquipmentCaptions?: string[];
 
   // Conclusion section
   conclusionUnCert?: string;
@@ -90,8 +95,11 @@ export class McertsFormDataDto {
   appendixField2?: string;
   appendixField3?: string;
   appendixAFiles?: FileUploadDto[];
+  appendixACaptions?: string[];
   appendixBFiles?: FileUploadDto[];
+  appendixBCaptions?: string[];
   appendixCFiles?: FileUploadDto[];
+  appendixCCaptions?: string[];
 
   // Signature fields
   signatureIncluded?: boolean;
